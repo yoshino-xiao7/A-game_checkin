@@ -1,0 +1,28 @@
+{
+  "scheduler": {
+    "cron": "0 */10 * * * *",
+    "defaultHour": 8,
+    "timezone": "Asia/Shanghai"
+  },
+  "retry": {
+    "maxAttempts": 3,
+    "baseDelayMs": 1200
+  },
+  "storage": {
+    "attemptRetentionDays": 90
+  },
+  "communities": {
+    "miyoushe": {
+      "enabled": true,
+      "requestTimeoutMs": 15000
+    },
+    "skland": {
+      "enabled": true,
+      "requestTimeoutMs": 15000
+    },
+    "kuro": {
+      "enabled": true,
+      "requestTimeoutMs": 15000
+    }
+  }
+}

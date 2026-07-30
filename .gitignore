@@ -1,0 +1,6 @@
+config/config.json
+data/*
+!data/.gitkeep
+node_modules/
+coverage/
+.research/
