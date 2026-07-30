@@ -9,7 +9,7 @@ function response(payload) {
 test("SklandAdapter discovers Arknights and Endfield roles", async () => {
   const replies = [
     { status: 0, data: { code: "grant" } },
-    { status: 0, data: { cred: "cred", token: "sign-token", userId: "123456" } },
+    { code: 0, message: "OK", data: { cred: "cred", token: "sign-token", userId: "123456" } },
     {
       code: 0,
       data: {
@@ -79,4 +79,25 @@ test("SklandAdapter logs in with a phone verification code", async () => {
   assert.deepEqual(requests[1].body, { phone: "18888888888", code: "123456" })
   assert.match(requests[1].url, /user\/auth\/v2\/token_by_phone_code$/)
   assert.deepEqual(credential, { token: "hg-token" })
+})
+
+test("SklandAdapter refreshes the signing token when cred response omits it", async () => {
+  const replies = [
+    { status: 0, data: { code: "grant" } },
+    { code: 0, message: "OK", data: { cred: "cred", userId: "123456" } },
+    { code: 0, message: "OK", data: { token: "refreshed-sign-token" } },
+    { code: 0, data: { list: [] } },
+  ]
+  const requests = []
+  const adapter = new SklandAdapter({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options })
+      return response(replies.shift())
+    },
+  })
+
+  await adapter.discoverTargets("hg-token")
+
+  assert.match(requests[2].url, /\/auth\/refresh$/)
+  assert.equal(requests[2].options.headers.cred, "cred")
 })

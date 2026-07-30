@@ -1,7 +1,7 @@
 {
   "scheduler": {
     "cron": "0 */10 * * * *",
-    "defaultHour": 8,
+    "defaultHour": 9,
     "timezone": "Asia/Shanghai"
   },
   "retry": {

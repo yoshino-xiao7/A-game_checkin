@@ -63,7 +63,13 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   assert.equal(bound.targets.length, 1)
   assert.equal((await coordinator.listTargets(user.identity))[0].enabled, true)
 
-  const first = await coordinator.runUser(user.identity)
+  await store.transaction(data => {
+    data.users[user.identity].accounts[0].targets[0].subscription.preferredHour = 1
+  })
+  assert.equal((await coordinator.listTargets(user.identity))[0].preferredHour, 8)
+
+  const due = await coordinator.runDue(new Date("2026-07-30T00:00:00.000Z"))
+  const first = due[0].results
   const second = await coordinator.runUser(user.identity)
   assert.equal(first[0].kind, "success")
   assert.deepEqual(second, [])
