@@ -23,6 +23,10 @@
     "kuro": {
       "enabled": true,
       "requestTimeoutMs": 15000
+    },
+    "taygedo": {
+      "enabled": true,
+      "requestTimeoutMs": 15000
     }
   }
 }

@@ -64,6 +64,11 @@ body {
   background: #f2efff;
 }
 
+.community-pill.taygedo {
+  color: #f06eaa;
+  background: #fff0f7;
+}
+
 .community-pill img {
   width: 21px;
   height: 21px;

@@ -105,6 +105,11 @@ h1 {
   --soft: #f2efff;
 }
 
+.account-card.taygedo {
+  --accent: #f06eaa;
+  --soft: #fff0f7;
+}
+
 .card-top {
   position: relative;
   display: flex;

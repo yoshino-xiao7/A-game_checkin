@@ -9,5 +9,6 @@
 | `endfield.jpg` | 明日方舟：终末地主视觉 | [终末地官方网站](https://endfield.gryphline.com/) |
 | `wuthering-waves.webp` | 鸣潮官网主视觉 | [鸣潮官方网站](https://wutheringwaves.kurogames.com/en/) |
 | `punishing-gray-raven.jpg` | 战双帕弥什官方壁纸 | [战双帕弥什官方网站壁纸页](https://pgr.kurogame.net/wallpapers) |
+| `neverness-to-everness.webp` | 异环视觉素材 | [TaJiDuo-plugin（MIT）](https://github.com/Entropy-Increase-Team/TaJiDuo-plugin) |
 
 项目不会在运行时联网抓图；以上素材会随插件保存在本地，避免图片失效、网络波动或泄露用户请求信息。

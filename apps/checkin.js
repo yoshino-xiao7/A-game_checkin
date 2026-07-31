@@ -16,6 +16,7 @@ import {
 const pendingBind = new Map()
 const pendingSklandPhone = new Map()
 const pendingKuroPhone = new Map()
+const pendingTaygedoPhone = new Map()
 const pendingDelete = new Map()
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 let pluginUpdating = false
@@ -126,7 +127,7 @@ export class GameCheckinApp extends plugin {
         },
         { reg: "^#?签到帮助$", fnc: "help" },
         {
-          reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区(?:\\s*Token)?)$",
+          reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区(?:\\s*Token)?|塔吉多(?:\\s*Token)?)$",
           fnc: "startBind",
         },
         { reg: "^#?签到账号$", fnc: "accounts" },
@@ -138,7 +139,7 @@ export class GameCheckinApp extends plugin {
         { reg: "^#?开启签到\\s*(\\d+)$", fnc: "enableTarget" },
         { reg: "^#?关闭签到\\s*(\\d+)$", fnc: "disableTarget" },
         {
-          reg: "^#?签到\\s*(\\d+|原神|星铁|崩铁|崩坏(?:：|:)?星穹铁道|绝区零|崩坏3|崩坏三|明日方舟|终末地|明日方舟(?:：|:)?终末地|鸣潮|鸣朝|战双|战双帕弥什)$",
+          reg: "^#?签到\\s*(\\d+|原神|星铁|崩铁|崩坏(?:：|:)?星穹铁道|绝区零|崩坏3|崩坏三|明日方舟|终末地|明日方舟(?:：|:)?终末地|鸣潮|鸣朝|战双|战双帕弥什|幻塔|异环)$",
           fnc: "checkinTarget",
         },
         { reg: "^#?(全部签到|米游社签到)$", fnc: "checkin" },
@@ -246,6 +247,8 @@ export class GameCheckinApp extends plugin {
           "私聊 #绑定签到 森空岛 Token（备用）",
           "私聊 #绑定签到 库街区（本地验证文件 + 短信验证码）",
           "私聊 #绑定签到 库街区 Token（备用）",
+          "私聊 #绑定签到 塔吉多（手机号验证码）",
+          "私聊 #绑定签到 塔吉多 Token（备用 JSON）",
           "#签到账号（查看账号编号）",
           "#签到游戏（查看游戏编号）",
           "#签到日志 [今天/昨天/YYYY-MM-DD]",
@@ -271,6 +274,8 @@ export class GameCheckinApp extends plugin {
         ? "skland"
         : e.msg.includes("库街区")
           ? "kuro"
+          : e.msg.includes("塔吉多")
+            ? "taygedo"
           : null
     if (!communityId) return e.reply("暂不支持该社区。")
     if (communityId === "miyoushe" && !/Cookie$/i.test(e.msg.trim())) {
@@ -286,14 +291,99 @@ export class GameCheckinApp extends plugin {
         "请在 120 秒内发送库街区绑定的 11 位手机号，发送“取消”可退出。",
       )
     }
+    if (communityId === "taygedo" && !/Token$/i.test(e.msg.trim())) {
+      this.setContext("receiveTaygedoPhone", false, 120)
+      return e.reply(
+        "请在 120 秒内发送塔吉多绑定的 11 位手机号，发送“取消”可退出。",
+      )
+    }
     pendingBind.set(String(e.user_id), communityId)
     this.setContext("receiveCredential", false, 120)
     return e.reply(
       `请在 120 秒内发送${registry.get(communityId).displayName}凭证。\n` +
-        "米游社发送 Cookie；森空岛发送 Token；库街区发送登录 JSON 或“用户ID Token”。\n" +
+        "米游社发送 Cookie；森空岛发送 Token；库街区发送登录 JSON 或“用户ID Token”；塔吉多发送登录 JSON。\n" +
         "插件会验证账号并自动发现该账号下所有支持签到的游戏角色。\n" +
         "发送“取消”可退出，凭证不会出现在后续回复或日志中。",
     )
+  }
+
+  async receiveTaygedoPhone() {
+    const e = this.e
+    const userId = String(e.user_id)
+    const phone = String(e.msg ?? "").trim()
+    if (phone === "取消") {
+      pendingTaygedoPhone.delete(userId)
+      this.finish("receiveTaygedoPhone")
+      return e.reply("已取消绑定。")
+    }
+
+    try {
+      const adapter = registry.get("taygedo")
+      const result = await adapter.sendPhoneCode(phone)
+      const session = {
+        phone: result.phone,
+        deviceId: result.deviceId,
+        expiresAt: Date.now() + 5 * 60 * 1000,
+      }
+      pendingTaygedoPhone.set(userId, session)
+      setTimeout(() => {
+        if (pendingTaygedoPhone.get(userId)?.expiresAt === session.expiresAt) {
+          pendingTaygedoPhone.delete(userId)
+        }
+      }, 5 * 60 * 1000).unref()
+      this.finish("receiveTaygedoPhone")
+      this.setContext("receiveTaygedoCode", false, 300)
+      return e.reply(
+        "塔吉多验证码已发送，请在 5 分钟内回复 6 位短信验证码。\n" +
+          "验证码只用于本次登录，不会保存；发送“取消”可退出。",
+      )
+    } catch (error) {
+      return e.reply(
+        `塔吉多验证码发送失败：${error.message}\n请重新输入手机号，或发送“取消”。`,
+      )
+    }
+  }
+
+  async receiveTaygedoCode() {
+    const e = this.e
+    const userId = String(e.user_id)
+    const code = String(e.msg ?? "").trim()
+    if (code === "取消") {
+      pendingTaygedoPhone.delete(userId)
+      this.finish("receiveTaygedoCode")
+      return e.reply("已取消绑定。")
+    }
+    const session = pendingTaygedoPhone.get(userId)
+    if (!session || session.expiresAt <= Date.now()) {
+      pendingTaygedoPhone.delete(userId)
+      this.finish("receiveTaygedoCode")
+      return e.reply("验证码会话已过期，请重新发送 #绑定签到 塔吉多。")
+    }
+
+    try {
+      const adapter = registry.get("taygedo")
+      const credential = await adapter.loginByPhoneCode(
+        session.phone,
+        code,
+        session.deviceId,
+      )
+      const result = await coordinator.bindAccount(
+        identityFromEvent(e),
+        "taygedo",
+        credential,
+      )
+      pendingTaygedoPhone.delete(userId)
+      this.finish("receiveTaygedoCode")
+      return e.reply(
+        `绑定成功：${result.account.displayName}\n` +
+          `已发现 ${result.targets.length} 个幻塔/异环角色，并默认开启自动签到。\n` +
+          "发送 #签到游戏 可查看游戏编号。",
+      )
+    } catch (error) {
+      return e.reply(
+        `塔吉多验证码登录失败：${error.message}\n请重新输入验证码，或发送“取消”。`,
+      )
+    }
   }
 
   async receiveKuroPhone() {

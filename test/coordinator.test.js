@@ -75,6 +75,44 @@ class SelectiveAdapter extends CommunityAdapter {
   }
 }
 
+class RotatingCredentialAdapter extends CommunityAdapter {
+  constructor() {
+    super("rotating", "轮换凭证社区")
+    this.seenTokens = []
+  }
+
+  normalizeCredential(input) {
+    return { token: String(input.token) }
+  }
+
+  async validateCredential() {
+    return { externalAccountId: "rotating-1", displayName: "轮换账号" }
+  }
+
+  async discoverTargets() {
+    return [
+      {
+        externalId: "rotate:1",
+        displayName: "轮换游戏 · 角色一",
+        businessTimezone: "Asia/Shanghai",
+      },
+      {
+        externalId: "rotate:2",
+        displayName: "轮换游戏 · 角色二",
+        businessTimezone: "Asia/Shanghai",
+      },
+    ]
+  }
+
+  async checkIn(credential) {
+    this.seenTokens.push(credential.token)
+    return {
+      kind: "success",
+      credentialUpdate: { token: `${credential.token}-next` },
+    }
+  }
+}
+
 function testConfig() {
   return {
     scheduler: { defaultHour: 8 },
@@ -172,4 +210,32 @@ test("CheckinCoordinator manually runs a game by name or ordinal", async t => {
   const logs = await coordinator.listLogs(user.identity)
   assert.equal(logs.length, 3)
   assert.ok(logs.every(item => item.trigger === "manual"))
+})
+
+test("CheckinCoordinator persists rotating community credentials between targets", async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "a-game-rotating-"))
+  t.after(() => fs.rm(tempDir, { recursive: true, force: true }))
+
+  const adapter = new RotatingCredentialAdapter()
+  const vault = new CredentialVault(() => Buffer.alloc(32, 5).toString("base64"))
+  const store = new JsonStore(path.join(tempDir, "accounts.json"))
+  const coordinator = new CheckinCoordinator({
+    registry: new CommunityRegistry([adapter]),
+    store,
+    vault,
+    config: testConfig(),
+  })
+  const user = { identity: "test:bot:rotate", userId: "rotate", botId: "bot" }
+
+  await coordinator.bindAccount(user, "rotating", { token: "start" })
+  const results = await coordinator.runUser(user.identity)
+
+  assert.equal(results.length, 2)
+  assert.deepEqual(adapter.seenTokens, ["start", "start-next"])
+  const persisted = await store.read()
+  assert.deepEqual(
+    vault.decrypt(persisted.users[user.identity].accounts[0].credential),
+    { token: "start-next-next" },
+  )
+  assert.ok(results.every(result => !Object.hasOwn(result, "credentialUpdate")))
 })

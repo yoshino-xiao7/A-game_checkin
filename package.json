@@ -1,6 +1,6 @@
 {
   "name": "a-game-checkin",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "面向 Yunzai v3 的多游戏社区统一签到插件",
   "type": "module",
   "main": "index.js",

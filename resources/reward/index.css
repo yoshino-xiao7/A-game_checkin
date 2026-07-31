@@ -139,6 +139,11 @@ h1 {
   --accent-soft: #f2efff;
 }
 
+.community-card.taygedo {
+  --accent: #f06eaa;
+  --accent-soft: #fff0f7;
+}
+
 .community-head {
   display: flex;
   align-items: center;
