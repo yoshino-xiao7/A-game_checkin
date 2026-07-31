@@ -7,9 +7,9 @@
 {{block 'main'}}
 <header class="hero">
   <div class="hero-copy">
-    <div class="hero-kicker">今日奖励一览</div>
-    <h1>每日签到奖励</h1>
-    <div class="date">{{date}} · 奖励已存入背包</div>
+    <div class="hero-kicker">{{kicker}}</div>
+    <h1>{{title}}</h1>
+    <div class="date">{{dateText}}</div>
   </div>
   <div class="summary">
     <div class="summary-number">{{successCount}}<span>/{{totalCount}}</span></div>
@@ -57,9 +57,11 @@
           {{each record.rewards reward}}
           <div class="reward">
             <div class="item-art">
-              <img class="fallback-gift" src="{{_res_path}}/reward/fallback-gift.svg" alt=""/>
               {{if reward.icon}}
-              <img class="reward-icon" src="{{reward.icon}}" alt="" onerror="this.style.display='none'"/>
+              <img class="reward-icon" src="{{reward.icon}}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+              <img class="fallback-gift load-fallback" src="{{_res_path}}/reward/fallback-gift.svg" alt=""/>
+              {{else}}
+              <img class="fallback-gift" src="{{_res_path}}/reward/fallback-gift.svg" alt=""/>
               {{/if}}
               <div class="reward-count">×{{reward.count}}</div>
             </div>

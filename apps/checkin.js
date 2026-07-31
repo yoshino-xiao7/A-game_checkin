@@ -1,4 +1,6 @@
 import plugin from "../../../lib/plugins/plugin.js"
+import fs from "node:fs/promises"
+import path from "node:path"
 import QRCode from "qrcode"
 import { coordinator, registry } from "../lib/runtime.js"
 import {
@@ -12,6 +14,7 @@ import {
 
 const pendingBind = new Map()
 const pendingSklandPhone = new Map()
+const pendingKuroPhone = new Map()
 const pendingDelete = new Map()
 
 function identityFromEvent(e) {
@@ -66,6 +69,36 @@ function dateInShanghaiFromDate(date) {
   }).format(date)
 }
 
+async function sendPrivateFile(e, filePath, fileName) {
+  const target =
+    globalThis.Bot?.pickUser?.(e.user_id) ??
+    e.friend
+  const attempts = []
+  if (target?.sendFile) {
+    attempts.push(() => target.sendFile(filePath, fileName))
+    attempts.push(() => target.sendFile(filePath))
+  }
+  attempts.push(() =>
+    e.reply([{ type: "file", data: { file: filePath, name: fileName } }]),
+  )
+  attempts.push(() =>
+    e.reply([
+      { type: "file", data: { file: `file://${filePath}`, name: fileName } },
+    ]),
+  )
+
+  const errors = []
+  for (const attempt of attempts) {
+    try {
+      await attempt()
+      return
+    } catch (error) {
+      errors.push(error.message)
+    }
+  }
+  throw new Error(errors.filter(Boolean).join("；") || "当前适配器不支持发送文件")
+}
+
 export class GameCheckinApp extends plugin {
   constructor() {
     super({
@@ -76,7 +109,7 @@ export class GameCheckinApp extends plugin {
       rule: [
         { reg: "^#?签到帮助$", fnc: "help" },
         {
-          reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区)$",
+          reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区(?:\\s*Token)?)$",
           fnc: "startBind",
         },
         { reg: "^#?签到账号$", fnc: "accounts" },
@@ -87,6 +120,10 @@ export class GameCheckinApp extends plugin {
         },
         { reg: "^#?开启签到\\s*(\\d+)$", fnc: "enableTarget" },
         { reg: "^#?关闭签到\\s*(\\d+)$", fnc: "disableTarget" },
+        {
+          reg: "^#?签到\\s*(\\d+|原神|星铁|崩铁|崩坏(?:：|:)?星穹铁道|绝区零|崩坏3|崩坏三|明日方舟|终末地|明日方舟(?:：|:)?终末地|鸣潮|鸣朝|战双|战双帕弥什)$",
+          fnc: "checkinTarget",
+        },
         { reg: "^#?(全部签到|米游社签到)$", fnc: "checkin" },
         { reg: "^#?删除签到账号\\s*(\\d+)$", fnc: "startDelete" },
       ],
@@ -116,11 +153,14 @@ export class GameCheckinApp extends plugin {
           "私聊 #绑定签到 米游社 Cookie（备用）",
           "私聊 #绑定签到 森空岛（手机号验证码）",
           "私聊 #绑定签到 森空岛 Token（备用）",
-          "私聊 #绑定签到 库街区",
+          "私聊 #绑定签到 库街区（本地验证文件 + 短信验证码）",
+          "私聊 #绑定签到 库街区 Token（备用）",
           "#签到账号（查看账号编号）",
           "#签到游戏（查看游戏编号）",
           "#签到日志 [今天/昨天/YYYY-MM-DD]",
           "#全部签到",
+          "#签到原神",
+          "#签到 <游戏编号>",
           "#开启签到 <游戏编号>",
           "#关闭签到 <游戏编号>",
           "#删除签到账号 <账号编号>",
@@ -148,6 +188,12 @@ export class GameCheckinApp extends plugin {
       this.setContext("receiveSklandPhone", false, 120)
       return e.reply("请在 120 秒内发送森空岛绑定的 11 位手机号，发送“取消”可退出。")
     }
+    if (communityId === "kuro" && !/Token$/i.test(e.msg.trim())) {
+      this.setContext("receiveKuroPhone", false, 120)
+      return e.reply(
+        "请在 120 秒内发送库街区绑定的 11 位手机号，发送“取消”可退出。",
+      )
+    }
     pendingBind.set(String(e.user_id), communityId)
     this.setContext("receiveCredential", false, 120)
     return e.reply(
@@ -156,6 +202,86 @@ export class GameCheckinApp extends plugin {
         "插件会验证账号并自动发现该账号下所有支持签到的游戏角色。\n" +
         "发送“取消”可退出，凭证不会出现在后续回复或日志中。",
     )
+  }
+
+  async receiveKuroPhone() {
+    const e = this.e
+    const userId = String(e.user_id)
+    const phone = String(e.msg ?? "").trim()
+    if (phone === "取消") {
+      pendingKuroPhone.delete(userId)
+      this.finish("receiveKuroPhone")
+      return e.reply("已取消绑定。")
+    }
+
+    try {
+      const adapter = registry.get("kuro")
+      const session = adapter.createPhoneLogin(phone)
+      const filePath = await adapter.createPhoneLoginFile(
+        session.token,
+        path.join(process.cwd(), "temp", "A-game_checkin"),
+      )
+      try {
+        await sendPrivateFile(e, filePath, path.basename(filePath))
+      } finally {
+        await fs.unlink(filePath).catch(() => {})
+      }
+      pendingKuroPhone.set(userId, session.token)
+      this.finish("receiveKuroPhone")
+      this.setContext("receiveKuroCode", false, 600)
+      return e.reply(
+        "手机号已记录在临时内存中，不会写入文件。\n" +
+          "请下载刚刚收到的一次性 HTML 文件，用浏览器打开并完成滑块。\n" +
+          "页面会直接请求库洛官方接口发送短信，不需要机器人公网。\n" +
+          "页面提示短信已发送后，请回到私聊直接回复短信验证码。\n" +
+          "发送“取消”可退出。",
+      )
+    } catch (error) {
+      return e.reply(
+        `库街区登录初始化失败：${error.message}\n请重新输入手机号，或发送“取消”。`,
+      )
+    }
+  }
+
+  async receiveKuroCode() {
+    const e = this.e
+    const userId = String(e.user_id)
+    const code = String(e.msg ?? "").trim()
+    const adapter = registry.get("kuro")
+    const token = pendingKuroPhone.get(userId)
+    if (code === "取消") {
+      if (token) adapter.finishPhoneLogin(token)
+      pendingKuroPhone.delete(userId)
+      this.finish("receiveKuroCode")
+      return e.reply("已取消绑定。")
+    }
+
+    const session = token ? adapter.getPhoneLogin(token) : null
+    if (!session) {
+      pendingKuroPhone.delete(userId)
+      this.finish("receiveKuroCode")
+      return e.reply("验证码会话已过期，请重新发送 #绑定签到 库街区。")
+    }
+    try {
+      const credential = await adapter.loginPhoneSession(token, code)
+      const result = await coordinator.bindAccount(
+        identityFromEvent(e),
+        "kuro",
+        credential,
+      )
+      adapter.finishPhoneLogin(token)
+      pendingKuroPhone.delete(userId)
+      this.finish("receiveKuroCode")
+      return e.reply(
+        `绑定成功：${result.account.displayName}\n` +
+          `已发现 ${result.targets.length} 个游戏角色，并默认开启自动签到。\n` +
+          "发送 #签到游戏 可查看游戏编号。",
+      )
+    } catch (error) {
+      return e.reply(
+        `库街区验证码登录失败：${error.message}\n请重新输入验证码，或发送“取消”。`,
+      )
+    }
   }
 
   async receiveSklandPhone() {
@@ -287,7 +413,7 @@ export class GameCheckinApp extends plugin {
     }
     if (!communityId) {
       this.finish("receiveCredential")
-      return e.reply("绑定会话已过期，请重新发送 #绑定签到 米游社。")
+      return e.reply("绑定会话已过期，请重新发送对应的 #绑定签到 命令。")
     }
 
     try {
@@ -415,9 +541,51 @@ export class GameCheckinApp extends plugin {
     const identity = identityFromEvent(e).identity
     try {
       const results = await coordinator.runUser(identity)
-      return e.reply(formatBatchResult(results))
+      if (!results.length) return e.reply("今天没有需要执行的签到游戏。")
+      return this.replyCheckinCard(e, results, "全部游戏")
     } catch (error) {
       return e.reply(`签到无法执行：${error.message}`)
+    }
+  }
+
+  async checkinTarget(e) {
+    const identity = identityFromEvent(e).identity
+    const selector = String(e.msg ?? "")
+      .replace(/^#?签到\s*/, "")
+      .trim()
+    try {
+      const results = await coordinator.runTarget(identity, selector)
+      if (!results.length) {
+        return e.reply(`所选游戏今天已经签到：${selector}`)
+      }
+      return this.replyCheckinCard(e, results, selector)
+    } catch (error) {
+      return e.reply(`签到无法执行：${error.message}`)
+    }
+  }
+
+  async replyCheckinCard(e, results, selector) {
+    const fallback = formatBatchResult(results, `手动签到 · ${selector}`)
+    const logs = results.map(result => ({
+      ...result,
+      resultKind: result.kind,
+    }))
+    try {
+      return await this.renderImg(
+        "A-game_checkin",
+        "reward/index",
+        buildRewardCardData(logs, dateInShanghai(), {
+          kicker: "本次奖励一览",
+          title: `手动签到 · ${selector}`,
+          dateText: `${dateInShanghai()} · 签到结果已记录`,
+        }),
+        { scale: 1.5 },
+      )
+    } catch (error) {
+      globalThis.logger?.warn?.(
+        `[A-game-checkin] 手动签到卡片渲染失败，已回退文字：${error.message}`,
+      )
+      return e.reply(fallback)
     }
   }
 

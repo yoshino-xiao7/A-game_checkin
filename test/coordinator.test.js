@@ -39,6 +39,42 @@ class FakeAdapter extends CommunityAdapter {
   }
 }
 
+class SelectiveAdapter extends CommunityAdapter {
+  constructor() {
+    super("selective", "选择测试社区")
+    this.checked = []
+  }
+
+  async validateCredential() {
+    return { externalAccountId: "account-2", displayName: "选择测试账号" }
+  }
+
+  async discoverTargets() {
+    return [
+      {
+        externalId: "genshin:role-1",
+        displayName: "原神 · 角色一",
+        businessTimezone: "Asia/Shanghai",
+      },
+      {
+        externalId: "genshin:role-2",
+        displayName: "原神 · 角色二",
+        businessTimezone: "Asia/Shanghai",
+      },
+      {
+        externalId: "wuthering-waves:role-3",
+        displayName: "鸣潮 · 角色三",
+        businessTimezone: "Asia/Shanghai",
+      },
+    ]
+  }
+
+  async checkIn(_credential, target) {
+    this.checked.push(target.externalId)
+    return { kind: "success", reward: { name: "测试奖励", count: 1 } }
+  }
+}
+
 function testConfig() {
   return {
     scheduler: { defaultHour: 8 },
@@ -99,4 +135,41 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   const persisted = await store.read()
   assert.equal(JSON.stringify(persisted).includes("secret"), false)
   assert.equal(persisted.attempts.length, 1)
+})
+
+test("CheckinCoordinator manually runs a game by name or ordinal", async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "a-game-selective-"))
+  t.after(() => fs.rm(tempDir, { recursive: true, force: true }))
+
+  const adapter = new SelectiveAdapter()
+  const store = new JsonStore(path.join(tempDir, "accounts.json"))
+  const coordinator = new CheckinCoordinator({
+    registry: new CommunityRegistry([adapter]),
+    store,
+    vault: new CredentialVault(() => Buffer.alloc(32, 4).toString("base64")),
+    config: testConfig(),
+  })
+  const user = {
+    identity: "test:bot:selective",
+    userId: "selective",
+    botId: "bot",
+  }
+
+  await coordinator.bindAccount(user, "selective", { token: "secret" })
+  await coordinator.setTargetEnabled(user.identity, 1, false)
+
+  const byName = await coordinator.runTarget(user.identity, "原神")
+  assert.equal(byName.length, 2)
+  assert.deepEqual(adapter.checked, ["genshin:role-1", "genshin:role-2"])
+
+  const byOrdinal = await coordinator.runTarget(user.identity, 3)
+  assert.equal(byOrdinal.length, 1)
+  assert.equal(adapter.checked.at(-1), "wuthering-waves:role-3")
+  assert.equal(byOrdinal[0].communityId, "selective")
+
+  assert.deepEqual(await coordinator.runTarget(user.identity, "原神"), [])
+  assert.deepEqual(await coordinator.runTarget(user.identity, "鸣朝"), [])
+  const logs = await coordinator.listLogs(user.identity)
+  assert.equal(logs.length, 3)
+  assert.ok(logs.every(item => item.trigger === "manual"))
 })

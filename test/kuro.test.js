@@ -21,6 +21,65 @@ test("KuroAdapter discovers Punishing Gray Raven and Wuthering Waves roles", asy
   ])
 })
 
+test("KuroAdapter sends a phone code with a user-completed Geetest result", async () => {
+  const requests = []
+  const adapter = new KuroAdapter({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options })
+      return response({ code: 200, msg: "OK" })
+    },
+  })
+  const validation = {
+    lot_number: "lot",
+    captcha_output: "output",
+    pass_token: "pass",
+    gen_time: "time",
+  }
+
+  const result = await adapter.sendPhoneCode(
+    "18888888888",
+    validation,
+    "DEVICE-CODE",
+  )
+  const body = new URLSearchParams(requests[0].options.body)
+
+  assert.equal(result.phone, "18888888888")
+  assert.match(requests[0].url, /\/user\/getSmsCode$/)
+  assert.equal(body.get("mobile"), "18888888888")
+  assert.deepEqual(JSON.parse(body.get("geeTestData")), validation)
+  assert.equal(requests[0].options.headers.devCode, "DEVICE-CODE")
+})
+
+test("KuroAdapter exchanges a phone code for a persistent credential", async () => {
+  const requests = []
+  const adapter = new KuroAdapter({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options })
+      return response({
+        code: 200,
+        data: { userId: "123456", token: "login-token" },
+      })
+    },
+  })
+
+  const credential = await adapter.loginByPhoneCode(
+    "18888888888",
+    "123456",
+    "DEVICE-CODE",
+  )
+  const body = new URLSearchParams(requests[0].options.body)
+
+  assert.deepEqual(credential, {
+    userId: "123456",
+    token: "login-token",
+    deviceCode: "DEVICE-CODE",
+  })
+  assert.match(requests[0].url, /\/user\/sdkLogin$/)
+  assert.equal(body.get("mobile"), "18888888888")
+  assert.equal(body.get("code"), "123456")
+  assert.equal(body.get("devCode"), "DEVICE-CODE")
+})
+
 test("KuroAdapter normalizes risk control during sign-in", async () => {
   const replies = [
     { code: 200, data: { isSigIn: false } },
