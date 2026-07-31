@@ -13,7 +13,7 @@
     <div class="visual-copy">
       <div class="visual-kicker">COMMAND HANDBOOK</div>
       <h1 class="visual-title">签到帮助</h1>
-      <div class="visual-subtitle">多游戏社区 · 统一自动签到 · {{background.label}}</div>
+      <div class="visual-subtitle">绑定一次，统一管理所有游戏签到</div>
     </div>
     <div class="visual-badge">
       <span>每日自动签到</span>
@@ -36,20 +36,55 @@
   <span class="community-count">{{communityCount}} 个社区</span>
 </div>
 
+<section class="quick-start">
+  <div class="quick-title">
+    <span>QUICK START</span>
+    <strong>三步开始</strong>
+  </div>
+  <div class="quick-step">
+    <b>01</b>
+    <div>
+      <strong>绑定社区</strong>
+      <span>私聊发送绑定命令</span>
+    </div>
+  </div>
+  <div class="quick-line"></div>
+  <div class="quick-step">
+    <b>02</b>
+    <div>
+      <strong>选择游戏</strong>
+      <span>用 #签到游戏 查看编号</span>
+    </div>
+  </div>
+  <div class="quick-line"></div>
+  <div class="quick-step">
+    <b>03</b>
+    <div>
+      <strong>开始签到</strong>
+      <span>自动执行或立即签到</span>
+    </div>
+  </div>
+</section>
+
 <main class="help-grid">
   {{each groups group}}
-  <section class="help-section {{group.theme}}">
+  <section class="help-section {{group.theme}} {{if group.note}}has-note{{/if}}">
     <header class="section-head">
-      <div>
+      <div class="section-title">
         <span>{{group.label}}</span>
         <h2>{{group.name}}</h2>
+        <p>{{group.summary}}</p>
       </div>
-      <i></i>
+      <div class="section-count">
+        <strong>{{group.commands.length}}</strong>
+        <span>COMMANDS</span>
+      </div>
     </header>
 
     <div class="command-list">
       {{each group.commands item}}
       <div class="command-row">
+        <i>#</i>
         <div class="command-copy">
           <strong>{{item.command}}</strong>
           <span>{{item.description}}</span>
