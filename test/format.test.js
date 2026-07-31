@@ -122,12 +122,17 @@ test("buildHelpCardData separates ordinals and selects a local game background",
   assert.equal(card.background.image, "help/backgrounds/endfield.jpg")
   assert.match(card.background.label, /终末地/)
   assert.match(
-    card.groups.find(group => group.name === "账号安全").note,
+    card.groups.find(group => group.name === "维护与安全").note,
     /账号编号.*游戏编号/,
   )
   assert.ok(
     card.groups
       .flatMap(group => group.commands)
       .some(item => item.command === "#绑定签到 库街区"),
+  )
+  assert.ok(
+    card.groups
+      .flatMap(group => group.commands)
+      .some(item => item.command === "#插件更新agame"),
   )
 })

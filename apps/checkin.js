@@ -1,6 +1,7 @@
 import plugin from "../../../lib/plugins/plugin.js"
 import fs from "node:fs/promises"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import QRCode from "qrcode"
 import { coordinator, registry } from "../lib/runtime.js"
 import {
@@ -16,6 +17,17 @@ const pendingBind = new Map()
 const pendingSklandPhone = new Map()
 const pendingKuroPhone = new Map()
 const pendingDelete = new Map()
+const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+let pluginUpdating = false
+
+function safeUpdateOutput(...values) {
+  const text = values
+    .filter(Boolean)
+    .join("\n")
+    .replace(/(https?:\/\/)[^@\s/]+@/gi, "$1***@")
+    .trim()
+  return text.length > 1200 ? `…${text.slice(-1200)}` : text
+}
 
 function identityFromEvent(e) {
   const adapter = e.adapter?.name || e.adapter_name || e.platform || "yunzai"
@@ -107,6 +119,11 @@ export class GameCheckinApp extends plugin {
       event: "message",
       priority: 500,
       rule: [
+        {
+          reg: "^#?插件更新\\s*[Aa]-?[Gg]ame(?:-checkin)?$",
+          fnc: "updatePlugin",
+          permission: "master",
+        },
         { reg: "^#?签到帮助$", fnc: "help" },
         {
           reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区(?:\\s*Token)?)$",
@@ -128,6 +145,80 @@ export class GameCheckinApp extends plugin {
         { reg: "^#?删除签到账号\\s*(\\d+)$", fnc: "startDelete" },
       ],
     })
+  }
+
+  async updatePlugin(e) {
+    if (!e.isMaster) return false
+    if (pluginUpdating) return e.reply("A-game_checkin 正在更新，请稍候。")
+    if (!globalThis.Bot?.exec) {
+      return e.reply("当前 Yunzai 不支持插件内更新，请在插件目录手动执行 git pull。")
+    }
+
+    pluginUpdating = true
+    try {
+      await e.reply("开始更新 A-game_checkin，请稍候……")
+      const before = await globalThis.Bot.exec("git rev-parse --short HEAD", {
+        cwd: pluginRoot,
+      })
+      const pull = await globalThis.Bot.exec("git pull --rebase --autostash", {
+        cwd: pluginRoot,
+      })
+      if (pull.error) {
+        const detail = safeUpdateOutput(
+          pull.stdout,
+          pull.stderr,
+          pull.error.message,
+        )
+        return e.reply(
+          `A-game_checkin 更新失败。\n${detail || "请检查仓库连接与本地文件状态。"}`,
+        )
+      }
+
+      const after = await globalThis.Bot.exec("git rev-parse --short HEAD", {
+        cwd: pluginRoot,
+      })
+      const beforeId = String(before.stdout ?? "").trim()
+      const afterId = String(after.stdout ?? "").trim()
+      if (beforeId && beforeId === afterId) {
+        return e.reply(`A-game_checkin 已是最新版本（${afterId}）。`)
+      }
+
+      let dependencyText = ""
+      if (beforeId && afterId) {
+        const changed = await globalThis.Bot.exec(
+          `git diff --name-only ${beforeId}..${afterId}`,
+          { cwd: pluginRoot },
+        )
+        if (
+          /(^|\n)(package(?:-lock)?\.json|pnpm-lock\.yaml)(\n|$)/.test(
+            String(changed.stdout ?? ""),
+          )
+        ) {
+          const install = await globalThis.Bot.exec("npm install --omit=dev", {
+            cwd: pluginRoot,
+          })
+          if (install.error) {
+            const detail = safeUpdateOutput(
+              install.stdout,
+              install.stderr,
+              install.error.message,
+            )
+            return e.reply(
+              `源码已更新到 ${afterId}，但依赖安装失败。\n${detail || "请在插件目录手动执行 npm install --omit=dev。"}`,
+            )
+          }
+          dependencyText = "\n依赖已同步安装。"
+        }
+      }
+
+      return e.reply(
+        `A-game_checkin 更新成功：${beforeId || "未知"} → ${afterId || "最新"}${dependencyText}\n请重启 Yunzai 载入新代码。`,
+      )
+    } catch (error) {
+      return e.reply(`A-game_checkin 更新失败：${safeUpdateOutput(error.message)}`)
+    } finally {
+      pluginUpdating = false
+    }
   }
 
   async help(e) {
@@ -164,6 +255,7 @@ export class GameCheckinApp extends plugin {
           "#开启签到 <游戏编号>",
           "#关闭签到 <游戏编号>",
           "#删除签到账号 <账号编号>",
+          "#插件更新agame（仅主人）",
           "",
           "默认每天 09:00 自动签到；账号编号与游戏编号不可混用。",
         ].join("\n"),

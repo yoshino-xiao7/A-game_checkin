@@ -8,6 +8,13 @@
 >
 > 默认签到时间：每天 `09:00`（`Asia/Shanghai`）
 
+## 项目地址
+
+- GitHub：[yoshino-xiao7/A-game_checkin](https://github.com/yoshino-xiao7/A-game_checkin)
+- Gitee（国内镜像）：[yoshino-xiao7/A-game_checkin](https://gitee.com/yoshino-xiao7/A-game_checkin)
+
+两个仓库提供相同版本的插件源码。国内服务器建议使用 Gitee，能够稳定访问 GitHub 的环境也可以使用 GitHub。安装时任选一个仓库即可，不要在同一个插件目录中重复克隆。
+
 ## 功能
 
 - 一个插件管理米游社、森空岛和库街区账号
@@ -41,11 +48,23 @@
 
 在 Yunzai 根目录执行：
 
+### Gitee（国内推荐）
+
+```bash
+git clone https://gitee.com/yoshino-xiao7/A-game_checkin.git ./plugins/A-game_checkin
+cd ./plugins/A-game_checkin
+npm install --omit=dev
+```
+
+### GitHub
+
 ```bash
 git clone https://github.com/yoshino-xiao7/A-game_checkin.git ./plugins/A-game_checkin
 cd ./plugins/A-game_checkin
 npm install --omit=dev
 ```
+
+两种安装方式的插件目录和后续配置完全相同。
 
 ### 配置加密主密钥
 
@@ -151,6 +170,7 @@ export A_GAME_CHECKIN_MASTER_KEY="生成的密钥"
 | `#签到日志 今天` | 查看今天的签到奖励卡片 |
 | `#签到日志 昨天` | 查看昨天的签到奖励卡片 |
 | `#签到日志 2026-07-31` | 查看指定日期的签到奖励卡片 |
+| `#插件更新agame` | 从当前 GitHub/Gitee 仓库更新插件，仅主人可用 |
 
 签到日志按业务日期归档，不按“最近多少条”截取。已经从社区接口取得奖励详情时，卡片会显示道具名称、数量和道具图片。
 
@@ -325,11 +345,41 @@ Created By A-game_checkin 0.0.1
 
 ## 更新
 
-进入插件目录执行：
+机器人主人可以直接发送：
+
+```text
+#插件更新agame
+```
+
+插件会从当前配置的 `origin` 拉取更新，因此 GitHub 和 Gitee 安装均可使用。如果本次更新修改了依赖清单，插件还会自动执行 `npm install --omit=dev`。更新成功后请重启 Yunzai，使已经载入内存的代码生效。
+
+也可以进入插件目录手动更新。
+
+进入插件目录执行以下命令即可从安装时选择的仓库更新：
 
 ```bash
 git pull
 npm install --omit=dev
+```
+
+查看当前使用的仓库：
+
+```bash
+git remote -v
+```
+
+如需把已有安装从 GitHub 切换到 Gitee：
+
+```bash
+git remote set-url origin https://gitee.com/yoshino-xiao7/A-game_checkin.git
+git pull
+```
+
+从 Gitee 切换回 GitHub：
+
+```bash
+git remote set-url origin https://github.com/yoshino-xiao7/A-game_checkin.git
+git pull
 ```
 
 更新完成后重启 Yunzai。
