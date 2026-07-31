@@ -1,20 +1,25 @@
 {{extend defaultLayout}}
 
 {{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
 <link rel="stylesheet" type="text/css" href="{{_res_path}}/help/index.css"/>
 {{/block}}
 
 {{block 'main'}}
-<header class="help-hero">
-  <div class="hero-copy">
-    <div class="eyebrow">COMMAND HANDBOOK</div>
-    <h1>签到帮助</h1>
-    <div class="hero-subtitle">多游戏社区 · 统一自动签到</div>
-  </div>
-  <div class="hero-time">
-    <span>每日自动签到</span>
-    <strong>09:00</strong>
-    <small>Asia / Shanghai</small>
+<header class="visual-hero">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">COMMAND HANDBOOK</div>
+      <h1 class="visual-title">签到帮助</h1>
+      <div class="visual-subtitle">多游戏社区 · 统一自动签到 · {{background.label}}</div>
+    </div>
+    <div class="visual-badge">
+      <span>每日自动签到</span>
+      <strong>09:00</strong>
+      <small>Asia / Shanghai</small>
+    </div>
   </div>
 </header>
 

@@ -1,19 +1,24 @@
 {{extend defaultLayout}}
 
 {{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
 <link rel="stylesheet" type="text/css" href="{{_res_path}}/reward/index.css"/>
 {{/block}}
 
 {{block 'main'}}
-<header class="hero">
-  <div class="hero-copy">
-    <div class="hero-kicker">{{kicker}}</div>
-    <h1>{{title}}</h1>
-    <div class="date">{{dateText}}</div>
-  </div>
-  <div class="summary">
-    <div class="summary-number">{{successCount}}<span>/{{totalCount}}</span></div>
-    <div class="summary-label">签到完成</div>
+<header class="visual-hero reward-visual">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">{{kicker}}</div>
+      <h1 class="visual-title">{{title}}</h1>
+      <div class="visual-subtitle">{{dateText}} · {{background.label}}</div>
+    </div>
+    <div class="visual-badge inline">
+      <strong>{{successCount}}</strong>
+      <span>/ {{totalCount}} 完成</span>
+    </div>
   </div>
 </header>
 

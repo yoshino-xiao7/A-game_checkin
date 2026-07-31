@@ -1,19 +1,24 @@
 {{extend defaultLayout}}
 
 {{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
 <link rel="stylesheet" type="text/css" href="{{_res_path}}/account/index.css"/>
 {{/block}}
 
 {{block 'main'}}
-<header class="account-hero">
-  <div>
-    <div class="eyebrow">ACCOUNT CENTER</div>
-    <h1>签到账号</h1>
-    <div class="hero-subtitle">社区连接与游戏角色概览</div>
-  </div>
-  <div class="hero-summary">
-    <strong>{{accountCount}}</strong>
-    <span>个社区 · {{targetCount}} 个角色</span>
+<header class="visual-hero">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">ACCOUNT CENTER</div>
+      <h1 class="visual-title">签到账号</h1>
+      <div class="visual-subtitle">社区连接与游戏角色概览 · {{background.label}}</div>
+    </div>
+    <div class="visual-badge inline">
+      <strong>{{accountCount}}</strong>
+      <span>社区 · {{targetCount}} 角色</span>
+    </div>
   </div>
 </header>
 

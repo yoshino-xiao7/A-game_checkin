@@ -1,19 +1,24 @@
 {{extend defaultLayout}}
 
 {{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
 <link rel="stylesheet" type="text/css" href="{{_res_path}}/game/index.css"/>
 {{/block}}
 
 {{block 'main'}}
-<header class="game-hero">
-  <div>
-    <div class="eyebrow">GAME SCHEDULE</div>
-    <h1>签到游戏</h1>
-    <div class="hero-subtitle">使用游戏编号手动签到、开启或暂停</div>
-  </div>
-  <div class="hero-summary">
-    <strong>{{enabledCount}}</strong>
-    <span>/ {{gameCount}} 已开启</span>
+<header class="visual-hero">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">GAME SCHEDULE</div>
+      <h1 class="visual-title">签到游戏</h1>
+      <div class="visual-subtitle">使用游戏编号手动签到、开启或暂停 · {{background.label}}</div>
+    </div>
+    <div class="visual-badge inline">
+      <strong>{{enabledCount}}</strong>
+      <span>/ {{gameCount}} 已开启</span>
+    </div>
   </div>
 </header>
 

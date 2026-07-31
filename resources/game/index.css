@@ -7,8 +7,9 @@ body {
   margin: 0;
   color: #293248;
   background:
-    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.92), transparent 30%),
-    #eeeae1;
+    radial-gradient(circle at 8% 12%, rgba(255, 126, 179, 0.2), transparent 32%),
+    radial-gradient(circle at 92% 4%, rgba(154, 207, 255, 0.28), transparent 34%),
+    linear-gradient(145deg, #fff7fb, #f6faff 48%, #edf6ff);
 }
 
 .container {
@@ -79,8 +80,8 @@ h1 {
 }
 
 .game-card {
-  --accent: #697693;
-  --soft: #e9ebef;
+  --accent: #6688b5;
+  --soft: #edf6ff;
   position: relative;
   display: grid;
   min-height: 98px;
@@ -88,26 +89,26 @@ h1 {
   align-items: center;
   overflow: hidden;
   padding: 14px 13px;
-  border: 1px solid rgba(80, 79, 73, 0.1);
+  border: 1px solid rgba(170, 196, 226, 0.26);
   border-radius: 18px;
   background:
     linear-gradient(125deg, var(--soft), rgba(253, 251, 247, 0.96) 47%);
-  box-shadow: 0 6px 18px rgba(69, 65, 56, 0.08);
+  box-shadow: 0 8px 22px rgba(91, 122, 158, 0.08), 0 3px 13px rgba(245, 134, 169, 0.05);
 }
 
 .game-card.miyoushe {
-  --accent: #5f79ad;
-  --soft: #e8edf7;
+  --accent: #5681b8;
+  --soft: #e9f4ff;
 }
 
 .game-card.skland {
-  --accent: #c06d4f;
-  --soft: #f5e8e1;
+  --accent: #d15f8b;
+  --soft: #fff0f5;
 }
 
 .game-card.kuro {
-  --accent: #7368a8;
-  --soft: #eceaf6;
+  --accent: #7a73ba;
+  --soft: #f2efff;
 }
 
 .game-number {
@@ -224,8 +225,8 @@ h1 {
   margin-top: 14px;
   padding: 9px;
   border-radius: 12px;
-  color: #7f838c;
-  background: rgba(255, 255, 255, 0.48);
+  color: #718097;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.84), rgba(240, 250, 255, 0.78));
   font-size: 10px;
 }
 

@@ -1,0 +1,140 @@
+.visual-hero {
+  position: relative;
+  height: 250px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 24px;
+  background: #465262;
+  box-shadow:
+    0 14px 34px rgba(95, 115, 145, 0.14),
+    0 7px 24px rgba(245, 134, 169, 0.12);
+}
+
+.visual-art,
+.visual-shade {
+  position: absolute;
+  inset: 0;
+}
+
+.visual-art {
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: scale(1.01);
+}
+
+.visual-shade {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01) 20%, rgba(41, 53, 72, 0.05) 60%, rgba(41, 53, 72, 0.3) 100%),
+    linear-gradient(90deg, rgba(240, 250, 255, 0.12), transparent 58%);
+}
+
+.visual-content {
+  position: absolute;
+  right: 18px;
+  bottom: 17px;
+  left: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.visual-copy {
+  min-width: 0;
+  max-width: 72%;
+  padding: 12px 16px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 16px;
+  color: #1f2937;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(240, 250, 255, 0.74));
+  box-shadow:
+    0 8px 24px rgba(44, 62, 86, 0.14),
+    0 4px 16px rgba(245, 134, 169, 0.1);
+  backdrop-filter: blur(12px) saturate(1.25);
+}
+
+.visual-kicker {
+  margin-bottom: 3px;
+  color: #f586a9;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+}
+
+.visual-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 27px;
+  line-height: 1.16;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.visual-subtitle {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #68758a;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visual-badge {
+  flex: none;
+  min-width: 116px;
+  padding: 10px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: 15px;
+  color: #1f2937;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 240, 245, 0.76));
+  box-shadow:
+    0 8px 24px rgba(44, 62, 86, 0.13),
+    0 4px 16px rgba(245, 134, 169, 0.11);
+  text-align: right;
+  backdrop-filter: blur(12px) saturate(1.25);
+}
+
+.visual-badge span,
+.visual-badge small {
+  display: block;
+  color: #68758a;
+  font-size: 9px;
+}
+
+.visual-badge strong {
+  display: block;
+  margin: 1px 0;
+  color: #f586a9;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 26px;
+  line-height: 1.08;
+}
+
+.visual-badge.inline {
+  display: flex;
+  min-width: 136px;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.visual-badge.inline strong {
+  font-size: 29px;
+}
+
+.visual-badge.inline span {
+  font-size: 11px;
+}
+
+.copyright {
+  padding-top: 12px;
+  color: #758197;
+  font-size: 11px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.copyright .version {
+  margin-left: 4px;
+  color: #f586a9;
+}

@@ -36,7 +36,7 @@ test("buildRewardCardData includes local community and game icons", () => {
       resultKind: "success",
       rewards: [],
     },
-  ], "2026-07-31")
+  ], "2026-07-31", { backgroundIndex: 1 })
 
   assert.equal(card.groups[0].icon, "reward/icons/community/skland.jpg")
   assert.equal(
@@ -44,6 +44,7 @@ test("buildRewardCardData includes local community and game icons", () => {
     "reward/icons/game/endfield.jpg",
   )
   assert.equal(card.copyright, "Created By A-game_checkin")
+  assert.equal(card.background.image, "help/backgrounds/arknights.jpg")
 })
 
 test("buildAccountCardData creates compact community account cards", () => {
@@ -68,9 +69,10 @@ test("buildAccountCardData creates compact community account cards", () => {
         },
       ],
     },
-  ])
+  ], 0)
 
   assert.equal(card.accountCount, 1)
+  assert.equal(card.background.image, "help/backgrounds/hoyoverse.webp")
   assert.equal(card.targetCount, 2)
   assert.equal(card.imgType, "png")
   assert.equal(card.accounts[0].text, "已连接")
@@ -95,9 +97,13 @@ test("buildGameCardData assigns stable game numbers", () => {
       enabled: false,
       preferredHour: 9,
     },
-  ])
+  ], 4)
 
   assert.equal(card.imgType, "png")
+  assert.equal(
+    card.background.image,
+    "help/backgrounds/punishing-gray-raven.jpg",
+  )
   assert.equal(card.enabledCount, 1)
   assert.equal(card.games[0].number, "01")
   assert.equal(card.games[0].playerName, "旅行者")
@@ -105,14 +111,16 @@ test("buildGameCardData assigns stable game numbers", () => {
   assert.equal(card.games[1].stateText, "已暂停")
 })
 
-test("buildHelpCardData separates account and game ordinals", () => {
+test("buildHelpCardData separates ordinals and selects a local game background", () => {
   const card = buildHelpCardData([
     { id: "miyoushe", displayName: "米游社" },
     { id: "skland", displayName: "森空岛" },
-  ])
+  ], 2)
 
   assert.equal(card.imgType, "png")
   assert.equal(card.communityCount, 2)
+  assert.equal(card.background.image, "help/backgrounds/endfield.jpg")
+  assert.match(card.background.label, /终末地/)
   assert.match(
     card.groups.find(group => group.name === "账号安全").note,
     /账号编号.*游戏编号/,
