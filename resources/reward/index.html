@@ -6,44 +6,73 @@
 
 {{block 'main'}}
 <header class="hero">
-  <div>
-    <div class="eyebrow">A-GAME CHECK-IN</div>
-    <h1>签到奖励记录</h1>
-    <div class="date">{{date}}</div>
+  <div class="hero-copy">
+    <div class="hero-kicker">今日奖励一览</div>
+    <h1>每日签到奖励</h1>
+    <div class="date">{{date}} · 奖励已存入背包</div>
   </div>
-  <div class="summary">{{summary}}</div>
+  <div class="summary">
+    <div class="summary-number">{{successCount}}<span>/{{totalCount}}</span></div>
+    <div class="summary-label">签到完成</div>
+  </div>
 </header>
 
-<main class="records">
-  {{each records record}}
-  <section class="record">
-    <div class="record-head">
-      <div>
-        <div class="community">{{record.communityName}}</div>
-        <div class="target">{{record.targetName}}</div>
+<main class="communities">
+  {{each groups group}}
+  <section class="community-card {{group.theme}}">
+    <div class="community-head">
+      <div class="community-mark">
+        {{if group.icon}}
+        <img src="{{_res_path}}/{{group.icon}}" alt=""/>
+        {{else}}
+        <span>游</span>
+        {{/if}}
       </div>
-      <div class="status {{record.statusClass}}">{{record.status}}</div>
+      <div>
+        <div class="community-name">{{group.name}}</div>
+        <div class="community-meta">{{group.records.length}} 个签到角色</div>
+      </div>
     </div>
-    {{if record.rewards.length}}
-    <div class="rewards">
-      {{each record.rewards reward}}
-      <div class="reward">
-        <div class="icon-shell">
-          <div class="fallback">{{reward.initial}}</div>
-          {{if reward.icon}}
-          <img src="{{reward.icon}}" alt="" onerror="this.style.display='none'"/>
+
+    <div class="role-list">
+      {{each group.records record}}
+      <div class="role-row">
+        <div class="role-info">
+          <div class="status-icon {{record.statusClass}}">{{record.statusIcon}}</div>
+          {{if record.gameIcon}}
+          <img class="game-icon" src="{{_res_path}}/{{record.gameIcon}}" alt=""/>
           {{/if}}
+          <div class="role-copy">
+            <div class="game-name">{{record.gameName}}</div>
+            <div class="role-meta">
+              <span class="player-name">{{record.playerName}}</span>
+              <span class="meta-dot"></span>
+              <span class="status-text {{record.statusClass}}">{{record.status}}</span>
+            </div>
+          </div>
         </div>
-        <div class="reward-info">
-          <div class="reward-name">{{reward.name}}</div>
-          <div class="reward-count">× {{reward.count}}</div>
+
+        {{if record.rewards.length}}
+        <div class="rewards">
+          {{each record.rewards reward}}
+          <div class="reward">
+            <div class="item-art">
+              <img class="fallback-gift" src="{{_res_path}}/reward/fallback-gift.svg" alt=""/>
+              {{if reward.icon}}
+              <img class="reward-icon" src="{{reward.icon}}" alt="" onerror="this.style.display='none'"/>
+              {{/if}}
+              <div class="reward-count">×{{reward.count}}</div>
+            </div>
+            <div class="reward-name">{{reward.name}}</div>
+          </div>
+          {{/each}}
         </div>
+        {{else}}
+        <div class="empty">{{record.emptyText}}</div>
+        {{/if}}
       </div>
       {{/each}}
     </div>
-    {{else}}
-    <div class="empty">{{record.emptyText}}</div>
-    {{/if}}
   </section>
   {{/each}}
 </main>

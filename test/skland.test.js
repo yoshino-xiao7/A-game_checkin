@@ -58,6 +58,39 @@ test("SklandAdapter treats repeat attendance as already done", async () => {
   assert.equal(outcome.kind, "already-done")
 })
 
+test("SklandAdapter resolves Arknights reward icons from resource types", async () => {
+  const replies = [
+    { status: 0, data: { code: "grant" } },
+    { status: 0, data: { cred: "cred", token: "sign-token", userId: "123456" } },
+    {
+      code: 0,
+      data: {
+        awards: [{
+          resource: {
+            id: "4003",
+            type: "DIAMOND_SHD",
+            name: "合成玉",
+          },
+          count: 100,
+        }],
+      },
+    },
+  ]
+  const adapter = new SklandAdapter({
+    fetchImpl: async () => response(replies.shift()),
+  })
+  const outcome = await adapter.checkIn("hg-token", {
+    metadata: { appCode: "arknights", uid: "ark-1", channelMasterId: "1" },
+  })
+
+  assert.equal(outcome.kind, "success")
+  assert.equal(outcome.rewards[0].name, "合成玉")
+  assert.equal(
+    outcome.rewards[0].icon,
+    "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/item/DIAMOND_SHD.png",
+  )
+})
+
 test("SklandAdapter logs in with a phone verification code", async () => {
   const requests = []
   const replies = [
