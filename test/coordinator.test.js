@@ -64,6 +64,12 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
 
   const bound = await coordinator.bindAccount(user, "fake", { token: "secret" })
   assert.equal(bound.targets.length, 1)
+  assert.deepEqual(bound.account.roles, [{
+    gameName: "测试游戏",
+    playerName: "角色",
+    enabled: true,
+    preferredHour: 8,
+  }])
   assert.equal((await coordinator.listTargets(user.identity))[0].enabled, true)
 
   await store.transaction(data => {

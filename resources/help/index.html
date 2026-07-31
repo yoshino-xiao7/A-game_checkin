@@ -1,0 +1,77 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/help/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="help-hero">
+  <div class="hero-copy">
+    <div class="eyebrow">COMMAND HANDBOOK</div>
+    <h1>签到帮助</h1>
+    <div class="hero-subtitle">多游戏社区 · 统一自动签到</div>
+  </div>
+  <div class="hero-time">
+    <span>每日自动签到</span>
+    <strong>09:00</strong>
+    <small>Asia / Shanghai</small>
+  </div>
+</header>
+
+<div class="community-strip">
+  <span class="strip-label">已接入</span>
+  {{each communities community}}
+  <div class="community-pill {{community.theme}}">
+    {{if community.icon}}
+    <img src="{{_res_path}}/{{community.icon}}" alt=""/>
+    {{/if}}
+    <span>{{community.name}}</span>
+  </div>
+  {{/each}}
+  <span class="community-count">{{communityCount}} 个社区</span>
+</div>
+
+<main class="help-grid">
+  {{each groups group}}
+  <section class="help-section {{group.theme}}">
+    <header class="section-head">
+      <div>
+        <span>{{group.label}}</span>
+        <h2>{{group.name}}</h2>
+      </div>
+      <i></i>
+    </header>
+
+    <div class="command-list">
+      {{each group.commands item}}
+      <div class="command-row">
+        <div class="command-copy">
+          <strong>{{item.command}}</strong>
+          <span>{{item.description}}</span>
+        </div>
+        {{if item.tag}}
+        <em>{{item.tag}}</em>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+
+    {{if group.note}}
+    <div class="section-note">{{group.note}}</div>
+    {{/if}}
+  </section>
+  {{/each}}
+</main>
+
+<div class="privacy-tip">
+  <span class="shield">✓</span>
+  <div>
+    <strong>凭证仅加密保存在本机</strong>
+    <span>验证码或社区风控需前往对应社区完成处理</span>
+  </div>
+</div>
+
+<div class="copyright">
+  Created By A-game_checkin<span class="version">0.0.1</span>
+</div>
+{{/block}}

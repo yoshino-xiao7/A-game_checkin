@@ -2,6 +2,9 @@ import plugin from "../../../lib/plugins/plugin.js"
 import QRCode from "qrcode"
 import { coordinator, registry } from "../lib/runtime.js"
 import {
+  buildAccountCardData,
+  buildGameCardData,
+  buildHelpCardData,
   buildRewardCardData,
   formatBatchResult,
   formatCheckinLogs,
@@ -77,7 +80,7 @@ export class GameCheckinApp extends plugin {
           fnc: "startBind",
         },
         { reg: "^#?签到账号$", fnc: "accounts" },
-        { reg: "^#?签到目标$", fnc: "targets" },
+        { reg: "^#?(签到目标|签到游戏)$", fnc: "targets" },
         {
           reg: "^#?签到日志(?:\\s*(今天|昨天|\\d{4}-\\d{1,2}-\\d{1,2}))?$",
           fnc: "logs",
@@ -91,27 +94,41 @@ export class GameCheckinApp extends plugin {
   }
 
   async help(e) {
-    const communities = registry.list().map(item => item.displayName).join("、") || "暂无"
-    return e.reply(
-      [
-        "A-game-checkin 统一签到",
-        `已接入社区：${communities}`,
-        "",
-        "私聊 #绑定签到 米游社（推荐扫码）",
-        "私聊 #绑定签到 米游社 Cookie（备用）",
-        "私聊 #绑定签到 森空岛（手机号验证码）",
-        "私聊 #绑定签到 森空岛 Token（备用）",
-        "#签到账号",
-        "#签到目标",
-        "#签到日志 [今天/昨天/YYYY-MM-DD]",
-        "#全部签到",
-        "#开启签到 <目标编号>",
-        "#关闭签到 <目标编号>",
-        "#删除签到账号 <账号编号>",
-        "",
-        "凭证仅加密保存在本机；验证码或风控需要前往对应社区手动处理。",
-      ].join("\n"),
-    )
+    const communities = registry.list()
+    try {
+      return await this.renderImg(
+        "A-game_checkin",
+        "help/index",
+        buildHelpCardData(communities),
+        { scale: 1.5 },
+      )
+    } catch (error) {
+      globalThis.logger?.warn?.(
+        `[A-game-checkin] 帮助图片渲染失败，已回退文字：${error.message}`,
+      )
+      const names = communities.map(item => item.displayName).join("、") || "暂无"
+      return e.reply(
+        [
+          "A-game-checkin 统一签到",
+          `已接入社区：${names}`,
+          "",
+          "私聊 #绑定签到 米游社（推荐扫码）",
+          "私聊 #绑定签到 米游社 Cookie（备用）",
+          "私聊 #绑定签到 森空岛（手机号验证码）",
+          "私聊 #绑定签到 森空岛 Token（备用）",
+          "私聊 #绑定签到 库街区",
+          "#签到账号（查看账号编号）",
+          "#签到游戏（查看游戏编号）",
+          "#签到日志 [今天/昨天/YYYY-MM-DD]",
+          "#全部签到",
+          "#开启签到 <游戏编号>",
+          "#关闭签到 <游戏编号>",
+          "#删除签到账号 <账号编号>",
+          "",
+          "默认每天 09:00 自动签到；账号编号与游戏编号不可混用。",
+        ].join("\n"),
+      )
+    }
   }
 
   async startBind(e) {
@@ -203,8 +220,8 @@ export class GameCheckinApp extends plugin {
       this.finish("receiveSklandCode")
       return e.reply(
         `绑定成功：${result.account.displayName}\n` +
-          `已发现 ${result.targets.length} 个签到目标，并默认开启自动签到。\n` +
-          "发送 #签到目标 可查看详情。",
+          `已发现 ${result.targets.length} 个游戏角色，并默认开启自动签到。\n` +
+          "发送 #签到游戏 可查看游戏编号。",
       )
     } catch (error) {
       return e.reply(`验证码登录失败：${error.message}\n请重新输入验证码，或发送“取消”。`)
@@ -248,8 +265,8 @@ export class GameCheckinApp extends plugin {
         )
         return e.reply(
           `绑定成功：${bound.account.displayName}\n` +
-            `已发现 ${bound.targets.length} 个签到目标，并默认开启自动签到。\n` +
-            "发送 #签到目标 可查看详情。",
+            `已发现 ${bound.targets.length} 个游戏角色，并默认开启自动签到。\n` +
+            "发送 #签到游戏 可查看游戏编号。",
         )
       }
       return e.reply("等待扫码确认超时，请重新发送 #绑定签到 米游社。")
@@ -283,8 +300,8 @@ export class GameCheckinApp extends plugin {
       this.finish("receiveCredential")
       return e.reply(
         `绑定成功：${result.account.displayName}\n` +
-          `已发现 ${result.targets.length} 个签到目标，并默认开启自动签到。\n` +
-          "发送 #签到目标 可查看详情。",
+        `已发现 ${result.targets.length} 个游戏角色，并默认开启自动签到。\n` +
+        "发送 #签到游戏 可查看游戏编号。",
       )
     } catch (error) {
       return e.reply(`绑定失败：${error.message}\n请检查凭证后重试，或发送“取消”。`)
@@ -295,30 +312,55 @@ export class GameCheckinApp extends plugin {
     if (privateOnly(e)) return
     const accounts = await coordinator.listAccounts(identityFromEvent(e).identity)
     if (!accounts.length) return e.reply("尚未绑定签到账号。")
-    return e.reply(
-      accounts
-        .map(
-          (account, index) =>
-            `${index + 1}. ${account.displayName} [${account.credentialStatus}]，` +
-            `${account.targetCount} 个目标`,
-        )
-        .join("\n"),
-    )
+    try {
+      return await this.renderImg(
+        "A-game_checkin",
+        "account/index",
+        buildAccountCardData(accounts),
+        { scale: 1.5 },
+      )
+    } catch (error) {
+      globalThis.logger?.warn?.(
+        `[A-game-checkin] 账号卡片渲染失败，已回退文字：${error.message}`,
+      )
+      return e.reply(
+        accounts
+          .map(
+            (account, index) =>
+              `${index + 1}. ${account.displayName} [${account.credentialStatus}]，` +
+              `${account.targetCount} 个目标`,
+          )
+          .join("\n"),
+      )
+    }
   }
 
   async targets(e) {
     if (privateOnly(e)) return
     const targets = await coordinator.listTargets(identityFromEvent(e).identity)
-    if (!targets.length) return e.reply("尚未发现签到目标，请先绑定社区账号。")
-    return e.reply(
-      targets
-        .map(
-          (target, index) =>
-            `${index + 1}. ${target.enabled ? "✅" : "⏸️"} ${target.displayName} ` +
-            `(${String(target.preferredHour).padStart(2, "0")}:00)`,
-        )
-        .join("\n"),
-    )
+    if (!targets.length) return e.reply("尚未发现签到游戏，请先绑定社区账号。")
+    try {
+      return await this.renderImg(
+        "A-game_checkin",
+        "game/index",
+        buildGameCardData(targets),
+        { scale: 1.5 },
+      )
+    } catch (error) {
+      globalThis.logger?.warn?.(
+        `[A-game-checkin] 游戏卡片渲染失败，已回退文字：${error.message}`,
+      )
+      return e.reply(
+        targets
+          .map(
+            (target, index) =>
+              `游戏 ${index + 1}：${target.enabled ? "✅" : "⏸️"} ` +
+              `${target.displayName} ` +
+              `(${String(target.preferredHour).padStart(2, "0")}:00)`,
+          )
+          .join("\n"),
+      )
+    }
   }
 
   async logs(e) {
@@ -361,7 +403,9 @@ export class GameCheckinApp extends plugin {
         ordinal,
         enabled,
       )
-      return e.reply(`已${enabled ? "开启" : "关闭"}：${target.displayName}`)
+      return e.reply(
+        `已${enabled ? "开启" : "关闭"}游戏签到：${target.displayName}`,
+      )
     } catch (error) {
       return e.reply(error.message)
     }

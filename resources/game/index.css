@@ -1,0 +1,242 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 720px;
+  margin: 0;
+  color: #293248;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.92), transparent 30%),
+    #eeeae1;
+}
+
+.container {
+  width: 720px;
+  min-height: 320px;
+  padding: 26px 28px 16px;
+  background: transparent;
+}
+
+.game-hero {
+  display: flex;
+  min-height: 116px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 23px 27px;
+  border-radius: 22px;
+  color: #f8f6ef;
+  background:
+    radial-gradient(circle at 84% 22%, rgba(225, 193, 125, 0.22), transparent 27%),
+    linear-gradient(125deg, #2b354f, #53627e);
+  box-shadow: 0 12px 28px rgba(51, 58, 77, 0.18);
+}
+
+.eyebrow {
+  margin-bottom: 3px;
+  color: #e7ca8d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 29px;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+}
+
+.hero-summary {
+  display: flex;
+  align-items: baseline;
+  padding-left: 22px;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.hero-summary strong {
+  margin-right: 6px;
+  color: #f0d59b;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 30px;
+}
+
+.hero-summary span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  --accent: #697693;
+  --soft: #e9ebef;
+  position: relative;
+  display: grid;
+  min-height: 98px;
+  grid-template-columns: 42px 50px minmax(0, 1fr);
+  align-items: center;
+  overflow: hidden;
+  padding: 14px 13px;
+  border: 1px solid rgba(80, 79, 73, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(125deg, var(--soft), rgba(253, 251, 247, 0.96) 47%);
+  box-shadow: 0 6px 18px rgba(69, 65, 56, 0.08);
+}
+
+.game-card.miyoushe {
+  --accent: #5f79ad;
+  --soft: #e8edf7;
+}
+
+.game-card.skland {
+  --accent: #c06d4f;
+  --soft: #f5e8e1;
+}
+
+.game-card.kuro {
+  --accent: #7368a8;
+  --soft: #eceaf6;
+}
+
+.game-number {
+  align-self: stretch;
+  padding-right: 9px;
+  border-right: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  text-align: center;
+}
+
+.game-number span,
+.game-number strong {
+  display: block;
+}
+
+.game-number span {
+  margin-top: 8px;
+  color: #969aa4;
+  font-size: 9px;
+}
+
+.game-number strong {
+  margin-top: 1px;
+  color: var(--accent);
+  font-family: tttgbnumber, sans-serif;
+  font-size: 19px;
+}
+
+.game-icon {
+  width: 42px;
+  height: 42px;
+  margin-left: 8px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(49, 54, 67, 0.14);
+}
+
+.game-copy {
+  min-width: 0;
+  padding-left: 9px;
+  padding-right: 2px;
+}
+
+.game-name,
+.player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-name {
+  color: #30394e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.player-name {
+  margin-top: 3px;
+  color: #8e929d;
+  font-size: 10px;
+}
+
+.community {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  color: #9a9ca2;
+  font-size: 9px;
+}
+
+.community img {
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.schedule {
+  position: absolute;
+  right: 11px;
+  top: 10px;
+  text-align: right;
+}
+
+.schedule span,
+.schedule strong {
+  display: block;
+}
+
+.schedule span {
+  font-size: 9px;
+}
+
+.schedule strong {
+  margin-top: 2px;
+  color: #737a88;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.schedule.enabled span {
+  color: #4e9879;
+}
+
+.schedule.disabled span {
+  color: #b07f56;
+}
+
+.command-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+  padding: 9px;
+  border-radius: 12px;
+  color: #7f838c;
+  background: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+}
+
+.command-tip i {
+  width: 3px;
+  height: 3px;
+  margin: 0 10px;
+  border-radius: 50%;
+  background: #aaa9a5;
+}
+
+.container > .copyright:last-child {
+  display: none;
+}

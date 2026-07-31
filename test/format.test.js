@@ -1,6 +1,9 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import {
+  buildAccountCardData,
+  buildGameCardData,
+  buildHelpCardData,
   buildRewardCardData,
   formatCheckinLogs,
 } from "../lib/notification/format.js"
@@ -41,4 +44,82 @@ test("buildRewardCardData includes local community and game icons", () => {
     "reward/icons/game/endfield.jpg",
   )
   assert.equal(card.copyright, "Created By A-game_checkin")
+})
+
+test("buildAccountCardData creates compact community account cards", () => {
+  const card = buildAccountCardData([
+    {
+      communityId: "miyoushe",
+      displayName: "米游社 12***34",
+      credentialStatus: "valid",
+      targetCount: 2,
+      roles: [
+        {
+          gameName: "原神",
+          playerName: "旅行者",
+          enabled: true,
+          preferredHour: 9,
+        },
+        {
+          gameName: "崩坏：星穹铁道",
+          playerName: "开拓者",
+          enabled: false,
+          preferredHour: 9,
+        },
+      ],
+    },
+  ])
+
+  assert.equal(card.accountCount, 1)
+  assert.equal(card.targetCount, 2)
+  assert.equal(card.imgType, "png")
+  assert.equal(card.accounts[0].text, "已连接")
+  assert.equal(
+    card.accounts[0].roles[1].icon,
+    "reward/icons/game/star-rail.jpg",
+  )
+  assert.equal(card.accounts[0].roles[1].stateText, "已暂停")
+})
+
+test("buildGameCardData assigns stable game numbers", () => {
+  const card = buildGameCardData([
+    {
+      communityId: "miyoushe",
+      displayName: "原神 · 旅行者",
+      enabled: true,
+      preferredHour: 9,
+    },
+    {
+      communityId: "skland",
+      displayName: "明日方舟 · 博士",
+      enabled: false,
+      preferredHour: 9,
+    },
+  ])
+
+  assert.equal(card.imgType, "png")
+  assert.equal(card.enabledCount, 1)
+  assert.equal(card.games[0].number, "01")
+  assert.equal(card.games[0].playerName, "旅行者")
+  assert.equal(card.games[1].number, "02")
+  assert.equal(card.games[1].stateText, "已暂停")
+})
+
+test("buildHelpCardData separates account and game ordinals", () => {
+  const card = buildHelpCardData([
+    { id: "miyoushe", displayName: "米游社" },
+    { id: "skland", displayName: "森空岛" },
+  ])
+
+  assert.equal(card.imgType, "png")
+  assert.equal(card.communityCount, 2)
+  assert.match(
+    card.groups.find(group => group.name === "账号安全").note,
+    /账号编号.*游戏编号/,
+  )
+  assert.ok(
+    card.groups
+      .flatMap(group => group.commands)
+      .some(item => item.command === "#绑定签到 库街区"),
+  )
 })

@@ -1,0 +1,60 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/game/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="game-hero">
+  <div>
+    <div class="eyebrow">GAME SCHEDULE</div>
+    <h1>签到游戏</h1>
+    <div class="hero-subtitle">使用游戏编号开启或暂停自动签到</div>
+  </div>
+  <div class="hero-summary">
+    <strong>{{enabledCount}}</strong>
+    <span>/ {{gameCount}} 已开启</span>
+  </div>
+</header>
+
+<main class="game-grid">
+  {{each games game}}
+  <section class="game-card {{game.theme}}">
+    <div class="game-number">
+      <span>游戏</span>
+      <strong>{{game.number}}</strong>
+    </div>
+
+    {{if game.gameIcon}}
+    <img class="game-icon" src="{{_res_path}}/{{game.gameIcon}}" alt=""/>
+    {{/if}}
+
+    <div class="game-copy">
+      <div class="game-name">{{game.gameName}}</div>
+      <div class="player-name">{{game.playerName}}</div>
+      <div class="community">
+        {{if game.communityIcon}}
+        <img src="{{_res_path}}/{{game.communityIcon}}" alt=""/>
+        {{/if}}
+        {{game.communityName}}
+      </div>
+    </div>
+
+    <div class="schedule {{game.stateClass}}">
+      <span>{{game.stateText}}</span>
+      <strong>{{game.preferredTime}}</strong>
+    </div>
+  </section>
+  {{/each}}
+</main>
+
+<div class="command-tip">
+  <span>#开启签到 游戏编号</span>
+  <i></i>
+  <span>#关闭签到 游戏编号</span>
+</div>
+
+<div class="copyright">
+  Created By A-game_checkin<span class="version">0.0.1</span>
+</div>
+{{/block}}

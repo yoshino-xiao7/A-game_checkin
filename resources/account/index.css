@@ -1,0 +1,286 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 720px;
+  margin: 0;
+  color: #293248;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.92), transparent 30%),
+    #eeeae1;
+}
+
+.container {
+  width: 720px;
+  min-height: 300px;
+  padding: 26px 28px 16px;
+  background: transparent;
+}
+
+.account-hero {
+  display: flex;
+  min-height: 116px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 23px 27px;
+  border-radius: 22px;
+  color: #f8f6ef;
+  background:
+    radial-gradient(circle at 84% 22%, rgba(225, 193, 125, 0.22), transparent 27%),
+    linear-gradient(125deg, #2b354f, #53627e);
+  box-shadow: 0 12px 28px rgba(51, 58, 77, 0.18);
+}
+
+.eyebrow {
+  margin-bottom: 3px;
+  color: #e7ca8d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 29px;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+}
+
+.hero-summary {
+  display: flex;
+  align-items: baseline;
+  padding-left: 22px;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.hero-summary strong {
+  margin-right: 7px;
+  color: #f0d59b;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 30px;
+}
+
+.hero-summary span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.account-card {
+  --accent: #697693;
+  --soft: #e9ebef;
+  min-height: 148px;
+  overflow: hidden;
+  border: 1px solid rgba(80, 79, 73, 0.1);
+  border-radius: 19px;
+  background: rgba(253, 251, 247, 0.95);
+  box-shadow: 0 7px 20px rgba(69, 65, 56, 0.08);
+}
+
+.account-card.miyoushe {
+  --accent: #5f79ad;
+  --soft: #e8edf7;
+}
+
+.account-card.skland {
+  --accent: #c06d4f;
+  --soft: #f5e8e1;
+}
+
+.account-card.kuro {
+  --accent: #7368a8;
+  --soft: #eceaf6;
+}
+
+.card-top {
+  position: relative;
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  padding: 17px 17px 13px;
+  background: linear-gradient(120deg, var(--soft), rgba(255, 255, 255, 0.4));
+}
+
+.community-icon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 5px 12px rgba(59, 62, 74, 0.13);
+}
+
+.community-copy {
+  min-width: 0;
+  padding-right: 28px;
+}
+
+.community-name {
+  color: #30394f;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.account-name {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #8b909c;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-index {
+  position: absolute;
+  right: 13px;
+  top: 12px;
+  color: color-mix(in srgb, var(--accent) 34%, transparent);
+  font-family: tttgbnumber, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.account-state {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(72, 73, 70, 0.07);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  color: #7f8490;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(93, 101, 116, 0.1);
+}
+
+.status.valid {
+  color: #4e9879;
+}
+
+.status.expired {
+  color: #c35e58;
+}
+
+.status.warning {
+  color: #bb7d43;
+}
+
+.role-count {
+  padding: 4px 7px;
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--soft);
+  font-family: tttgbnumber, sans-serif;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.role-list {
+  padding: 5px 12px 8px;
+}
+
+.role {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  padding: 6px 2px;
+}
+
+.role + .role {
+  border-top: 1px dashed rgba(75, 76, 72, 0.1);
+}
+
+.game-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  margin-right: 9px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 3px 8px rgba(49, 54, 67, 0.13);
+}
+
+.role-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.game-name,
+.player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-name {
+  color: #333c50;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.player-name {
+  margin-top: 2px;
+  color: #9699a1;
+  font-size: 10px;
+}
+
+.role-state {
+  margin-left: 8px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.role-state span,
+.role-state b {
+  display: block;
+}
+
+.role-state span {
+  font-size: 9px;
+}
+
+.role-state b {
+  margin-top: 2px;
+  color: #747b89;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.role-state.enabled span {
+  color: #4f997a;
+}
+
+.role-state.disabled span {
+  color: #b07f56;
+}
+
+.container > .copyright:last-child {
+  display: none;
+}

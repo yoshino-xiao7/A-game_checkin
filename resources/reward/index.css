@@ -362,7 +362,6 @@ h1 {
   font-size: 13px;
 }
 
-.copyright {
-  margin-top: 15px;
-  color: rgba(93, 91, 84, 0.55);
+.container > .copyright:last-child {
+  display: none;
 }

@@ -1,0 +1,63 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/account/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="account-hero">
+  <div>
+    <div class="eyebrow">ACCOUNT CENTER</div>
+    <h1>签到账号</h1>
+    <div class="hero-subtitle">社区连接与游戏角色概览</div>
+  </div>
+  <div class="hero-summary">
+    <strong>{{accountCount}}</strong>
+    <span>个社区 · {{targetCount}} 个角色</span>
+  </div>
+</header>
+
+<main class="account-grid">
+  {{each accounts account}}
+  <section class="account-card {{account.theme}}">
+    <div class="card-top">
+      <img class="community-icon" src="{{_res_path}}/{{account.icon}}" alt=""/>
+      <div class="community-copy">
+        <div class="community-name">{{account.name}}</div>
+        <div class="account-name">{{account.displayName}}</div>
+      </div>
+      <div class="account-index">{{account.index}}</div>
+    </div>
+
+    <div class="account-state">
+      <div class="status {{account.className}}">
+        <span class="status-dot"></span>
+        {{account.text}}
+      </div>
+      <div class="role-count">{{account.targetCount}} 角色</div>
+    </div>
+
+    <div class="role-list">
+      {{each account.roles role}}
+      <div class="role">
+        {{if role.icon}}
+        <img class="game-icon" src="{{_res_path}}/{{role.icon}}" alt=""/>
+        {{/if}}
+        <div class="role-copy">
+          <div class="game-name">{{role.gameName}}</div>
+          <div class="player-name">{{role.playerName}}</div>
+        </div>
+        <div class="role-state {{role.stateClass}}">
+          <span>{{role.stateText}}</span>
+          <b>{{role.preferredTime}}</b>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </section>
+  {{/each}}
+</main>
+<div class="copyright">
+  Created By A-game_checkin<span class="version">0.0.1</span>
+</div>
+{{/block}}
