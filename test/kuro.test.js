@@ -41,3 +41,54 @@ test("KuroAdapter normalizes risk control during sign-in", async () => {
   )
   assert.equal(outcome.kind, "risk-control")
 })
+
+test("KuroAdapter records every reward received today", async () => {
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+  const replies = [
+    {
+      code: 200,
+      data: {
+        isSigIn: true,
+        signInGoodsConfigs: [
+          { goodsId: 10, goodsUrl: "https://example.com/astrite.png" },
+          { goodsId: 11, goodsUrl: "https://example.com/shell-credit.png" },
+        ],
+      },
+    },
+    {
+      code: 200,
+      data: [
+        {
+          sigInDate: `${today} 09:00:00`,
+          goodsId: 10,
+          goodsName: "星声",
+          goodsNum: 20,
+        },
+        {
+          sigInDate: `${today} 09:00:00`,
+          goodsId: 11,
+          goodsName: "贝币",
+          goodsNum: 3000,
+        },
+      ],
+    },
+  ]
+  const adapter = new KuroAdapter({
+    fetchImpl: async () => response(replies.shift()),
+  })
+  const outcome = await adapter.checkIn(
+    { userId: "123456", token: "token" },
+    { metadata: { gameId: 3, serverId: "mc-cn", roleId: "2" } },
+  )
+
+  assert.equal(outcome.kind, "already-done")
+  assert.deepEqual(outcome.rewards, [
+    { name: "星声", count: 20, icon: "https://example.com/astrite.png" },
+    { name: "贝币", count: 3000, icon: "https://example.com/shell-credit.png" },
+  ])
+})

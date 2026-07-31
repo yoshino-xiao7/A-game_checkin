@@ -1,7 +1,11 @@
 import plugin from "../../../lib/plugins/plugin.js"
 import QRCode from "qrcode"
 import { coordinator, registry } from "../lib/runtime.js"
-import { formatBatchResult } from "../lib/notification/format.js"
+import {
+  buildRewardCardData,
+  formatBatchResult,
+  formatCheckinLogs,
+} from "../lib/notification/format.js"
 
 const pendingBind = new Map()
 const pendingSklandPhone = new Map()
@@ -22,6 +26,43 @@ function privateOnly(e) {
   return true
 }
 
+function dateInShanghai(offsetDays = 0) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(Date.now() + offsetDays * 86400000))
+}
+
+function logDateFromMessage(message) {
+  const input = String(message)
+    .replace(/^#?签到日志/, "")
+    .trim()
+  if (!input || input === "今天") return dateInShanghai()
+  if (input === "昨天") return dateInShanghai(-1)
+  const match = input.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)
+  if (!match) throw new Error("日期格式应为 YYYY-MM-DD，例如 2026-07-31")
+  const date = `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`
+  const parsed = new Date(`${date}T00:00:00+08:00`)
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    dateInShanghaiFromDate(parsed) !== date
+  ) {
+    throw new Error("日期无效")
+  }
+  return date
+}
+
+function dateInShanghaiFromDate(date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date)
+}
+
 export class GameCheckinApp extends plugin {
   constructor() {
     super({
@@ -37,6 +78,10 @@ export class GameCheckinApp extends plugin {
         },
         { reg: "^#?签到账号$", fnc: "accounts" },
         { reg: "^#?签到目标$", fnc: "targets" },
+        {
+          reg: "^#?签到日志(?:\\s*(今天|昨天|\\d{4}-\\d{1,2}-\\d{1,2}))?$",
+          fnc: "logs",
+        },
         { reg: "^#?开启签到\\s*(\\d+)$", fnc: "enableTarget" },
         { reg: "^#?关闭签到\\s*(\\d+)$", fnc: "disableTarget" },
         { reg: "^#?(全部签到|米游社签到)$", fnc: "checkin" },
@@ -58,6 +103,7 @@ export class GameCheckinApp extends plugin {
         "私聊 #绑定签到 森空岛 Token（备用）",
         "#签到账号",
         "#签到目标",
+        "#签到日志 [今天/昨天/YYYY-MM-DD]",
         "#全部签到",
         "#开启签到 <目标编号>",
         "#关闭签到 <目标编号>",
@@ -273,6 +319,29 @@ export class GameCheckinApp extends plugin {
         )
         .join("\n"),
     )
+  }
+
+  async logs(e) {
+    if (privateOnly(e)) return
+    try {
+      const date = logDateFromMessage(e.msg)
+      const logs = await coordinator.listLogs(identityFromEvent(e).identity, date)
+      if (!logs.length) return e.reply(formatCheckinLogs(logs, date))
+      try {
+        return await this.renderImg(
+          "A-game_checkin",
+          "reward/index",
+          buildRewardCardData(logs, date),
+        )
+      } catch (error) {
+        globalThis.logger?.warn?.(
+          `[A-game-checkin] 奖励卡片渲染失败，已回退文字：${error.message}`,
+        )
+        return e.reply(formatCheckinLogs(logs, date))
+      }
+    } catch (error) {
+      return e.reply(`签到日志查询失败：${error.message}`)
+    }
   }
 
   async enableTarget(e) {

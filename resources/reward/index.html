@@ -1,0 +1,50 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/reward/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="hero">
+  <div>
+    <div class="eyebrow">A-GAME CHECK-IN</div>
+    <h1>签到奖励记录</h1>
+    <div class="date">{{date}}</div>
+  </div>
+  <div class="summary">{{summary}}</div>
+</header>
+
+<main class="records">
+  {{each records record}}
+  <section class="record">
+    <div class="record-head">
+      <div>
+        <div class="community">{{record.communityName}}</div>
+        <div class="target">{{record.targetName}}</div>
+      </div>
+      <div class="status {{record.statusClass}}">{{record.status}}</div>
+    </div>
+    {{if record.rewards.length}}
+    <div class="rewards">
+      {{each record.rewards reward}}
+      <div class="reward">
+        <div class="icon-shell">
+          <div class="fallback">{{reward.initial}}</div>
+          {{if reward.icon}}
+          <img src="{{reward.icon}}" alt="" onerror="this.style.display='none'"/>
+          {{/if}}
+        </div>
+        <div class="reward-info">
+          <div class="reward-name">{{reward.name}}</div>
+          <div class="reward-count">× {{reward.count}}</div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{else}}
+    <div class="empty">{{record.emptyText}}</div>
+    {{/if}}
+  </section>
+  {{/each}}
+</main>
+{{/block}}

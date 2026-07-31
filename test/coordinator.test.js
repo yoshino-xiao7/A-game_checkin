@@ -32,7 +32,10 @@ class FakeAdapter extends CommunityAdapter {
 
   async checkIn() {
     this.calls += 1
-    return { kind: "success", reward: { name: "测试奖励", count: 1 } }
+    return {
+      kind: "success",
+      reward: { name: "测试奖励", count: 1, icon: "https://example.com/item.png" },
+    }
   }
 }
 
@@ -68,12 +71,24 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   })
   assert.equal((await coordinator.listTargets(user.identity))[0].preferredHour, 8)
 
-  const due = await coordinator.runDue(new Date("2026-07-30T00:00:00.000Z"))
+  const scheduledAt = new Date("2026-07-30T00:00:00.000Z")
+  const due = await coordinator.runDue(scheduledAt)
   const first = due[0].results
-  const second = await coordinator.runUser(user.identity)
+  const second = await coordinator.runDue(scheduledAt)
   assert.equal(first[0].kind, "success")
   assert.deepEqual(second, [])
   assert.equal(adapter.calls, 1)
+
+  const logs = await coordinator.listLogs(user.identity, "2026-07-30")
+  assert.equal(logs.length, 1)
+  assert.equal(logs[0].trigger, "automatic")
+  assert.equal(logs[0].targetName, "测试游戏 · 角色")
+  assert.equal(logs[0].resultKind, "success")
+  assert.deepEqual(logs[0].rewards, [{
+    name: "测试奖励",
+    count: 1,
+    icon: "https://example.com/item.png",
+  }])
 
   const persisted = await store.read()
   assert.equal(JSON.stringify(persisted).includes("secret"), false)
