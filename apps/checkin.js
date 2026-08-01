@@ -125,7 +125,10 @@ export class GameCheckinApp extends plugin {
           fnc: "updatePlugin",
           permission: "master",
         },
-        { reg: "^#?签到帮助$", fnc: "help" },
+        {
+          reg: "^#?签到帮助(?:\\s*(绑定|兑换码|管理))?$",
+          fnc: "help",
+        },
         {
           reg: "^#?绑定签到\\s*(米游社(?:\\s*Cookie)?|森空岛(?:\\s*Token)?|库街区(?:\\s*Token)?|塔吉多(?:\\s*Token)?)$",
           fnc: "startBind",
@@ -224,43 +227,37 @@ export class GameCheckinApp extends plugin {
 
   async help(e) {
     const communities = registry.list()
+    const requested = String(e.msg ?? "")
+      .replace(/^#?签到帮助/, "")
+      .trim()
+    const page = {
+      绑定: "binding",
+      兑换码: "codes",
+      管理: "management",
+    }[requested] ?? "main"
+    const card = buildHelpCardData(communities, undefined, page)
     try {
       return await this.renderImg(
         "A-game_checkin",
         "help/index",
-        buildHelpCardData(communities),
+        card,
         { scale: 1.5 },
       )
     } catch (error) {
       globalThis.logger?.warn?.(
         `[A-game-checkin] 帮助图片渲染失败，已回退文字：${error.message}`,
       )
-      const names = communities.map(item => item.displayName).join("、") || "暂无"
       return e.reply(
         [
-          "A-game-checkin 统一签到",
-          `已接入社区：${names}`,
-          "",
-          "私聊 #绑定签到 米游社（推荐扫码）",
-          "私聊 #绑定签到 米游社 Cookie（备用）",
-          "私聊 #绑定签到 森空岛（手机号验证码）",
-          "私聊 #绑定签到 森空岛 Token（备用）",
-          "私聊 #绑定签到 库街区（本地验证文件 + 短信验证码）",
-          "私聊 #绑定签到 库街区 Token（备用）",
-          "私聊 #绑定签到 塔吉多（手机号验证码）",
-          "私聊 #绑定签到 塔吉多 Token（备用 JSON）",
-          "#签到账号（查看账号编号）",
-          "#签到游戏（查看游戏编号）",
-          "#签到日志 [今天/昨天/YYYY-MM-DD]",
-          "#全部签到",
-          "#签到原神",
-          "#签到 <游戏编号>",
-          "#开启签到 <游戏编号>",
-          "#关闭签到 <游戏编号>",
-          "#删除签到账号 <账号编号>",
-          "#插件更新agame（仅主人）",
-          "",
-          "默认每天 09:00 自动签到；账号编号与游戏编号不可混用。",
+          card.helpTitle,
+          card.helpSubtitle,
+          ...card.groups.flatMap(group => [
+            "",
+            `【${group.name}】`,
+            ...group.commands.map(item =>
+              `${item.command}：${item.description}`,
+            ),
+          ]),
         ].join("\n"),
       )
     }

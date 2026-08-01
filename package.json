@@ -1,11 +1,11 @@
 {
   "name": "a-game-checkin",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "面向 Yunzai v3 的多游戏社区统一签到插件",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "check": "node --check index.js && node --check apps/checkin.js && node --check apps/scheduler.js",
+    "check": "node --check index.js && node --check apps/checkin.js && node --check apps/codes.js && node --check apps/scheduler.js && node --check lib/codes/miyoushe-live.js && node --check lib/codes/subscription-service.js",
     "test": "node --test"
   },
   "engines": {

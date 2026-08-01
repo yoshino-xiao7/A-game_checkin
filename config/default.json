@@ -4,6 +4,12 @@
     "defaultHour": 9,
     "timezone": "Asia/Shanghai"
   },
+  "codeSubscription": {
+    "enabled": true,
+    "cron": "30 */2 * * * *",
+    "requestTimeoutMs": 12000,
+    "deliveryRetentionDays": 30
+  },
   "retry": {
     "maxAttempts": 3,
     "baseDelayMs": 1200

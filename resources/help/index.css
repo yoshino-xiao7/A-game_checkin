@@ -73,6 +73,11 @@ body {
   --soft: #fff0f5;
 }
 
+.help-section.cyan {
+  --accent: #4d9db3;
+  --soft: #eaf9fb;
+}
+
 .help-section.orange {
   --accent: #dc7896;
   --soft: #fff3f7;

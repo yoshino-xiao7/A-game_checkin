@@ -1,0 +1,55 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/code-status/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="visual-hero">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">REDEEM CODE SUBSCRIPTIONS</div>
+      <h1 class="visual-title">前瞻兑换码订阅</h1>
+      <div class="visual-subtitle">仅国服官方来源 · 新兑换码主动私聊</div>
+    </div>
+    <div class="visual-badge inline">
+      <strong>{{subscribedCount}}</strong>
+      <span>/ {{gameCount}} 已订阅</span>
+    </div>
+  </div>
+</header>
+
+<main class="status-grid">
+  {{each games game}}
+  <article class="game-status {{game.stateClass}}">
+    {{if game.gameIcon}}
+    <img src="{{_res_path}}/{{game.gameIcon}}" alt=""/>
+    {{/if}}
+    <div class="game-copy">
+      <span>CN LIVESTREAM</span>
+      <strong>{{game.gameName}}</strong>
+      <small>{{game.enabled ? '发现新码后主动私聊通知' : '当前不会接收兑换码通知'}}</small>
+    </div>
+    <div class="state">
+      <i>{{game.enabled ? '✓' : '—'}}</i>
+      <span>{{game.stateText}}</span>
+    </div>
+  </article>
+  {{/each}}
+</main>
+
+<div class="status-tip">
+  <span>i</span>
+  <div>
+    <strong>发送“#订阅前瞻兑换码 游戏名”可单独开启</strong>
+    <small>本插件仅负责通知，不会自动兑换</small>
+  </div>
+</div>
+
+<div class="copyright">
+  Created By A-game_checkin<span class="version">1.1.1</span>
+</div>
+{{/block}}

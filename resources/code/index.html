@@ -1,0 +1,67 @@
+{{extend defaultLayout}}
+
+{{block 'css'}}
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/common/visual.css"/>
+<link rel="stylesheet" type="text/css" href="{{_res_path}}/code/index.css"/>
+{{/block}}
+
+{{block 'main'}}
+<header class="visual-hero">
+  <div class="visual-art" style="background-image: url('{{_res_path}}/{{background.image}}'); background-position: {{background.position}};"></div>
+  <div class="visual-shade"></div>
+  <div class="visual-content">
+    <div class="visual-copy">
+      <div class="visual-kicker">CN LIVESTREAM CODES</div>
+      <h1 class="visual-title">{{gameName}}兑换码</h1>
+      <div class="visual-subtitle">{{title}}</div>
+    </div>
+    <div class="visual-badge inline">
+      <strong>{{codeCount}}</strong>
+      <span>条新码</span>
+    </div>
+  </div>
+</header>
+
+<main class="code-panel">
+  <header class="panel-head">
+    <div class="game-brand">
+      {{if gameIcon}}
+      <img src="{{_res_path}}/{{gameIcon}}" alt=""/>
+      {{/if}}
+      <div>
+        <span>国服官方前瞻</span>
+        <strong>{{gameName}}</strong>
+      </div>
+    </div>
+    <span class="source">{{sourceText}}</span>
+  </header>
+
+  <div class="code-list">
+    {{each codes item index}}
+    <article class="code-row">
+      <span class="code-number">{{index + 1}}</span>
+      <div class="code-copy">
+        <strong>{{item.code}}</strong>
+        <span>{{item.rewards}}</span>
+      </div>
+      <div class="code-expiry">
+        <span>有效期</span>
+        <strong>{{item.expiresText}}</strong>
+      </div>
+    </article>
+    {{/each}}
+  </div>
+</main>
+
+<div class="code-tip">
+  <span>i</span>
+  <div>
+    <strong>图片下方会同时发送可复制的纯文字兑换码</strong>
+    <small>本插件仅负责通知，不会读取账号执行自动兑换</small>
+  </div>
+</div>
+
+<div class="copyright">
+  Created By A-game_checkin<span class="version">1.1.1</span>
+</div>
+{{/block}}

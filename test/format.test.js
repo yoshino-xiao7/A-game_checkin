@@ -111,7 +111,7 @@ test("buildGameCardData assigns stable game numbers", () => {
   assert.equal(card.games[1].stateText, "已暂停")
 })
 
-test("buildHelpCardData separates ordinals and selects a local game background", () => {
+test("buildHelpCardData keeps the main page short and exposes detailed pages", () => {
   const card = buildHelpCardData([
     { id: "miyoushe", displayName: "米游社" },
     { id: "skland", displayName: "森空岛" },
@@ -121,17 +121,31 @@ test("buildHelpCardData separates ordinals and selects a local game background",
   assert.equal(card.communityCount, 2)
   assert.equal(card.background.image, "help/backgrounds/endfield.jpg")
   assert.match(card.background.label, /终末地/)
+  assert.equal(card.helpTitle, "签到助手")
+  assert.equal(card.groups.length, 3)
+  assert.equal(card.groups.flatMap(group => group.commands).length, 9)
+
+  const binding = buildHelpCardData([], 2, "binding")
+  const codes = buildHelpCardData([], 2, "codes")
+  const management = buildHelpCardData([], 2, "management")
+
+  assert.equal(binding.helpTitle, "账号绑定帮助")
+  assert.equal(binding.groups[0].commands.length, 8)
+  assert.equal(codes.helpTitle, "兑换码帮助")
+  assert.equal(codes.groups[0].commands.length, 6)
+  assert.equal(management.helpTitle, "签到管理帮助")
+  assert.equal(management.groups.length, 3)
   assert.match(
-    card.groups.find(group => group.name === "维护与安全").note,
+    management.groups.find(group => group.name === "维护与安全").note,
     /账号编号.*游戏编号/,
   )
   assert.ok(
-    card.groups
+    binding.groups
       .flatMap(group => group.commands)
       .some(item => item.command === "#绑定签到 库街区"),
   )
   assert.ok(
-    card.groups
+    management.groups
       .flatMap(group => group.commands)
       .some(item => item.command === "#插件更新agame"),
   )
