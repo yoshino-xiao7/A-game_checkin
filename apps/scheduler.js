@@ -2,10 +2,20 @@ import plugin from "../../../lib/plugins/plugin.js"
 import { codeSubscriptions, config, coordinator } from "../lib/runtime.js"
 import {
   buildCodeCardData,
+  buildRewardCardData,
   formatBatchResult,
   formatCodeNotification,
 } from "../lib/notification/format.js"
 import { notifyPrivateUser } from "../lib/notification/private.js"
+
+function dateInShanghai(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date)
+}
 
 export class GameCheckinScheduler extends plugin {
   constructor() {
@@ -39,6 +49,31 @@ export class GameCheckinScheduler extends plugin {
     const batches = await coordinator.runDue()
     for (const batch of batches) {
       try {
+        const date = dateInShanghai()
+        const logs = batch.results.map(result => ({
+          ...result,
+          resultKind: result.kind,
+        }))
+        try {
+          const image = await this.renderImg(
+            "A-game_checkin",
+            "reward/index",
+            buildRewardCardData(logs, date, {
+              kicker: "今日自动签到",
+              title: "每日签到奖励",
+              dateText: `${date} · 自动签到已完成`,
+            }),
+            { scale: 1.5, retType: "base64" },
+          )
+          if (image) {
+            await notifyPrivateUser(batch.user, image)
+            continue
+          }
+        } catch (error) {
+          globalThis.logger?.warn?.(
+            `[A-game-checkin] 自动签到卡片渲染失败，发送纯文字：${error.message}`,
+          )
+        }
         await notifyPrivateUser(
           batch.user,
           formatBatchResult(batch.results, "自动游戏签到结果"),
