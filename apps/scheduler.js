@@ -1,4 +1,5 @@
 import plugin from "../../../lib/plugins/plugin.js"
+import Runtime from "../../../lib/plugins/runtime.js"
 import { codeSubscriptions, config, coordinator } from "../lib/runtime.js"
 import {
   buildCodeCardData,
@@ -7,6 +8,12 @@ import {
   formatCodeNotification,
 } from "../lib/notification/format.js"
 import { notifyPrivateUser } from "../lib/notification/private.js"
+import { createScheduledImageRenderer } from "../lib/notification/scheduled-render.js"
+
+const renderScheduledImage = createScheduledImageRenderer({
+  RuntimeClass: Runtime,
+  renderImg: plugin.prototype.renderImg,
+})
 
 function dateInShanghai(date = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -55,7 +62,7 @@ export class GameCheckinScheduler extends plugin {
           resultKind: result.kind,
         }))
         try {
-          const image = await this.renderImg(
+          const image = await renderScheduledImage(
             "A-game_checkin",
             "reward/index",
             buildRewardCardData(logs, date, {
@@ -97,7 +104,7 @@ export class GameCheckinScheduler extends plugin {
       for (const batch of batches) {
         try {
           try {
-            const image = await this.renderImg(
+            const image = await renderScheduledImage(
               "A-game_checkin",
               "code/index",
               buildCodeCardData(batch),
