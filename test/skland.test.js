@@ -91,6 +91,77 @@ test("SklandAdapter resolves Arknights reward icons from resource types", async 
   )
 })
 
+test("SklandAdapter recovers today's Endfield reward after repeat attendance", async () => {
+  const replies = [
+    { status: 0, data: { code: "grant" } },
+    { status: 0, data: { cred: "cred", token: "sign-token", userId: "123456" } },
+    { code: 10001, message: "请勿重复签到" },
+    {
+      code: 0,
+      data: {
+        hasToday: true,
+        calendar: [
+          { awardId: "reward-1", done: true, available: false },
+          { awardId: "reward-2", done: true, available: false },
+          { awardId: "reward-3", done: false, available: false },
+        ],
+        resourceInfoMap: {
+          "reward-1": { name: "中级作战记录", count: 2, icon: "https://example.com/1.png" },
+          "reward-2": { name: "武器检查装置", count: 2, icon: "https://example.com/2.png" },
+          "reward-3": { name: "协议棱柱", count: 2, icon: "https://example.com/3.png" },
+        },
+      },
+    },
+  ]
+  const requests = []
+  const adapter = new SklandAdapter({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options })
+      return response(replies.shift())
+    },
+  })
+
+  const outcome = await adapter.checkIn("hg-token", {
+    metadata: {
+      appCode: "endfield",
+      roleId: "ef-role",
+      serverId: "cn",
+    },
+  })
+
+  assert.equal(outcome.kind, "already-done")
+  assert.deepEqual(outcome.rewards, [{
+    name: "武器检查装置",
+    count: 2,
+    icon: "https://example.com/2.png",
+  }])
+  assert.equal(requests[3].options.method, "GET")
+  assert.equal(requests[3].options.headers["sk-game-role"], "3_ef-role_cn")
+  assert.match(requests[3].url, /gameId=3/)
+  assert.match(requests[3].url, /roleId=ef-role/)
+  assert.match(requests[3].url, /serverId=cn/)
+})
+
+test("SklandAdapter keeps already-done when Endfield reward lookup fails", async () => {
+  const replies = [
+    { status: 0, data: { code: "grant" } },
+    { status: 0, data: { cred: "cred", token: "sign-token", userId: "123456" } },
+    { code: 10001, message: "请勿重复签到" },
+  ]
+  const adapter = new SklandAdapter({
+    fetchImpl: async () => {
+      if (replies.length) return response(replies.shift())
+      throw new Error("calendar unavailable")
+    },
+  })
+
+  const outcome = await adapter.checkIn("hg-token", {
+    metadata: { appCode: "endfield", roleId: "ef-role", serverId: "cn" },
+  })
+
+  assert.deepEqual(outcome, { kind: "already-done" })
+})
+
 test("SklandAdapter logs in with a phone verification code", async () => {
   const requests = []
   const replies = [
