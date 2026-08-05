@@ -8,6 +8,10 @@ import {
   extractTrustedKuroCodes,
   KuroOfficialCodeSource,
 } from "../lib/codes/kuro-official.js"
+import {
+  extractTrustedSklandCodes,
+  SklandOfficialCodeSource,
+} from "../lib/codes/skland-official.js"
 import { CodeSubscriptionService } from "../lib/codes/subscription-service.js"
 import {
   buildCodeCardData,
@@ -101,7 +105,91 @@ test("MiyousheLiveCodeSource discovers and normalizes official CN codes", async 
   assert.equal(resolveCodeGame("崩铁").key, "starRail")
   assert.equal(resolveCodeGame("鸣潮").key, "wutheringWaves")
   assert.equal(resolveCodeGame("战双").key, "punishingGrayRaven")
+  assert.equal(resolveCodeGame("方舟").key, "arknights")
+  assert.equal(resolveCodeGame("终末地").key, "endfield")
   assert.equal(calls.filter(call => call.url.includes("user_instant")).length, 1)
+})
+
+test("SklandOfficialCodeSource discovers cross-validated preview codes", async () => {
+  const requests = []
+  const timestamp = Math.floor(Date.now() / 1000)
+  const source = new SklandOfficialCodeSource({
+    fetchImpl: async (url, options = {}) => {
+      requests.push({ url: String(url), headers: options.headers })
+      if (String(url).endsWith("/web/v1/auth/refresh")) {
+        return jsonResponse({ code: 0, data: { token: "anonymous-token" } })
+      }
+      assert.match(options.headers.sign, /^[a-f0-9]{32}$/)
+      return jsonResponse({
+        code: 0,
+        data: {
+          list: [
+            {
+              item: {
+                id: "preview-1",
+                title: "终末地1.4前瞻直播兑换码",
+                caption: [{ text: { text: "兑换码：ENDFIELDRENEW" } }],
+                timestamp,
+              },
+              user: { id: "user-1", identity: 1 },
+            },
+            {
+              item: {
+                id: "preview-2",
+                title: "1.4直播前瞻的兑换码记得兑换",
+                caption: [{ text: { text: "ENDFIELDRENEW" } }],
+                timestamp,
+              },
+              user: { id: "user-2", identity: 1 },
+            },
+            {
+              item: {
+                id: "one-use-cdk",
+                title: "兑换码自取",
+                caption: [{ text: { text: "RDY4H5XYTDJQR6RVQWZ3AQVKWAPVNVBQ" } }],
+                timestamp,
+              },
+              user: { id: "user-3", identity: 1 },
+            },
+          ],
+        },
+      })
+    },
+  })
+
+  const codes = await source.list("endfield")
+  assert.deepEqual(codes.map(item => item.code), ["ENDFIELDRENEW"])
+  assert.equal(codes[0].gameName, "明日方舟：终末地")
+  assert.equal(codes[0].source, "skland-official-community")
+  assert.equal(
+    requests.filter(item => item.url.includes("/web/v2/search/item?")).length,
+    2,
+  )
+  assert.equal(
+    requests.filter(item => item.url.endsWith("/web/v1/auth/refresh")).length,
+    1,
+  )
+})
+
+test("Skland code extraction requires independent evidence and rejects old posts", () => {
+  const now = Date.now()
+  const makeResult = (userId, code, timestamp) => ({
+    item: {
+      id: `${userId}-${code}`,
+      title: "明日方舟新春前瞻兑换码",
+      caption: [{ text: { text: code } }],
+      timestamp: Math.floor(timestamp / 1000),
+    },
+    user: { id: userId, identity: 1 },
+  })
+  const result = extractTrustedSklandCodes([
+    makeResult("user-1", "26MADAOCHENGGONG", now),
+    makeResult("user-2", "26MADAOCHENGGONG", now),
+    makeResult("user-3", "FALSEPOSITIVE", now),
+    makeResult("user-4", "OLDCODE88", now - 20 * 86400000),
+    makeResult("user-5", "OLDCODE88", now - 20 * 86400000),
+  ], now)
+  assert.deepEqual(result.map(item => item.code), ["26MADAOCHENGGONG"])
 })
 
 test("KuroOfficialCodeSource discovers consensus codes from official preview posts", async () => {

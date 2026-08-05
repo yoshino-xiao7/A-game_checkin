@@ -6,7 +6,7 @@ import {
 } from "../lib/notification/format.js"
 
 const GAME_PATTERN =
-  "(原神|星铁|崩铁|星穹铁道|崩坏(?:：|:)?星穹铁道|绝区零|崩坏3|崩坏三|崩三|鸣潮|战双|战双帕弥什|帕弥什)"
+  "(原神|星铁|崩铁|星穹铁道|崩坏(?:：|:)?星穹铁道|绝区零|崩坏3|崩坏三|崩三|明日方舟|方舟|终末地|明日方舟(?:：|:)?终末地|鸣潮|战双|战双帕弥什|帕弥什)"
 
 function identityFromEvent(e) {
   const adapter = e.adapter?.name || e.adapter_name || e.platform || "yunzai"
