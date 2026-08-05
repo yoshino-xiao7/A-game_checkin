@@ -287,6 +287,17 @@ h1 {
   color: #b07f56;
 }
 
+.role-state em {
+  display: block;
+  margin-top: 3px;
+  color: #8b91a0;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 .container > .copyright:last-child {
   display: none;
 }

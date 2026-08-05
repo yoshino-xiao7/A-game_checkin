@@ -53,6 +53,10 @@
               <span class="player-name">{{record.playerName}}</span>
               <span class="meta-dot"></span>
               <span class="status-text {{record.statusClass}}">{{record.status}}</span>
+              {{if record.monthlyText}}
+              <span class="meta-dot"></span>
+              <span class="monthly-text">{{record.monthlyText}}</span>
+              {{/if}}
             </div>
           </div>
         </div>

@@ -661,7 +661,9 @@ export class GameCheckinApp extends plugin {
             (target, index) =>
               `游戏 ${index + 1}：${target.enabled ? "✅" : "⏸️"} ` +
               `${target.displayName} ` +
-              `(${String(target.preferredHour).padStart(2, "0")}:00)`,
+              `(${String(target.preferredHour).padStart(2, "0")}:00)，` +
+              `${Number(target.checkinMonth.slice(5, 7))}月签到 ` +
+              `${target.monthlyCheckinCount} 次`,
           )
           .join("\n"),
       )

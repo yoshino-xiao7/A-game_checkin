@@ -291,6 +291,13 @@ h1 {
   color: #c45d58;
 }
 
+.monthly-text {
+  color: #7d8494;
+  font-family: tttgbnumber, sans-serif;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 .rewards {
   display: flex;
   flex-wrap: wrap;

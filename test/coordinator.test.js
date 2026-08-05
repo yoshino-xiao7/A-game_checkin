@@ -156,6 +156,8 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   const first = due[0].results
   const second = await coordinator.runDue(scheduledAt)
   assert.equal(first[0].kind, "success")
+  assert.equal(first[0].checkinMonth, "2026-07")
+  assert.equal(first[0].monthlyCheckinCount, 1)
   assert.deepEqual(second, [])
   assert.equal(adapter.calls, 1)
 
@@ -164,6 +166,8 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   assert.equal(logs[0].trigger, "automatic")
   assert.equal(logs[0].targetName, "测试游戏 · 角色")
   assert.equal(logs[0].resultKind, "success")
+  assert.equal(logs[0].checkinMonth, "2026-07")
+  assert.equal(logs[0].monthlyCheckinCount, 1)
   assert.deepEqual(logs[0].rewards, [{
     name: "测试奖励",
     count: 1,
@@ -173,6 +177,40 @@ test("CheckinCoordinator binds discovered targets and keeps daily runs idempoten
   const persisted = await store.read()
   assert.equal(JSON.stringify(persisted).includes("secret"), false)
   assert.equal(persisted.attempts.length, 1)
+})
+
+test("CheckinCoordinator counts unique successful days per calendar month", async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "a-game-monthly-"))
+  t.after(() => fs.rm(tempDir, { recursive: true, force: true }))
+
+  const store = new JsonStore(path.join(tempDir, "accounts.json"))
+  const coordinator = new CheckinCoordinator({
+    registry: new CommunityRegistry([new FakeAdapter()]),
+    store,
+    vault: new CredentialVault(() => Buffer.alloc(32, 6).toString("base64")),
+    config: testConfig(),
+  })
+  const user = { identity: "test:bot:monthly", userId: "monthly", botId: "bot" }
+  await coordinator.bindAccount(user, "fake", { token: "secret" })
+
+  await store.transaction(data => {
+    const targetId = data.users[user.identity].accounts[0].targets[0].id
+    data.attempts.push(
+      { targetId, businessDate: "2026-08-01", resultKind: "success" },
+      { targetId, businessDate: "2026-08-01", resultKind: "already-done" },
+      { targetId, businessDate: "2026-08-02", resultKind: "already-done" },
+      { targetId, businessDate: "2026-08-03", resultKind: "permanent-failure" },
+      { targetId, businessDate: "2026-09-01", resultKind: "success" },
+    )
+  })
+
+  const august = (await coordinator.listTargets(user.identity, "2026-08-31"))[0]
+  const september = (await coordinator.listTargets(user.identity, "2026-09-01"))[0]
+
+  assert.equal(august.checkinMonth, "2026-08")
+  assert.equal(august.monthlyCheckinCount, 2)
+  assert.equal(september.checkinMonth, "2026-09")
+  assert.equal(september.monthlyCheckinCount, 1)
 })
 
 test("CheckinCoordinator manually runs a game by name or ordinal", async t => {

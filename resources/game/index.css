@@ -223,6 +223,15 @@ h1 {
   color: #b07f56;
 }
 
+.monthly-count {
+  position: absolute;
+  right: 11px;
+  bottom: 10px;
+  color: var(--accent);
+  font-family: tttgbnumber, sans-serif;
+  font-size: 9px;
+}
+
 .command-tip {
   display: flex;
   align-items: center;

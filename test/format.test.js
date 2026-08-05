@@ -19,6 +19,8 @@ test("formatCheckinLogs renders safe, readable history", () => {
         { name: "合成玉", count: 100 },
         { name: "龙门币", count: 5000 },
       ],
+      checkinMonth: "2026-07",
+      monthlyCheckinCount: 12,
       attemptNo: 1,
     },
   ], "2026-07-31")
@@ -26,6 +28,7 @@ test("formatCheckinLogs renders safe, readable history", () => {
   assert.match(text, /签到奖励记录（2026-07-31）/)
   assert.match(text, /1\. ✅ 明日方舟 · 博士/)
   assert.match(text, /合成玉 × 100、龙门币 × 5000/)
+  assert.match(text, /7月签到 12 次/)
 })
 
 test("buildRewardCardData includes local community and game icons", () => {
@@ -35,6 +38,8 @@ test("buildRewardCardData includes local community and game icons", () => {
       targetName: "明日方舟：终末地 · 管理员",
       resultKind: "success",
       rewards: [],
+      checkinMonth: "2026-07",
+      monthlyCheckinCount: 9,
     },
   ], "2026-07-31", { backgroundIndex: 1 })
 
@@ -45,6 +50,7 @@ test("buildRewardCardData includes local community and game icons", () => {
   )
   assert.equal(card.copyright, "Created By A-game_checkin")
   assert.equal(card.background.image, "help/backgrounds/arknights.jpg")
+  assert.equal(card.groups[0].records[0].monthlyText, "7月签到 9 次")
 })
 
 test("buildAccountCardData creates compact community account cards", () => {
@@ -60,6 +66,8 @@ test("buildAccountCardData creates compact community account cards", () => {
           playerName: "旅行者",
           enabled: true,
           preferredHour: 9,
+          checkinMonth: "2026-08",
+          monthlyCheckinCount: 5,
         },
         {
           gameName: "崩坏：星穹铁道",
@@ -81,6 +89,7 @@ test("buildAccountCardData creates compact community account cards", () => {
     "reward/icons/game/star-rail.jpg",
   )
   assert.equal(card.accounts[0].roles[1].stateText, "已暂停")
+  assert.equal(card.accounts[0].roles[0].monthlyText, "8月签到 5 次")
 })
 
 test("buildGameCardData assigns stable game numbers", () => {
@@ -90,6 +99,8 @@ test("buildGameCardData assigns stable game numbers", () => {
       displayName: "原神 · 旅行者",
       enabled: true,
       preferredHour: 9,
+      checkinMonth: "2026-08",
+      monthlyCheckinCount: 5,
     },
     {
       communityId: "skland",
@@ -107,6 +118,7 @@ test("buildGameCardData assigns stable game numbers", () => {
   assert.equal(card.enabledCount, 1)
   assert.equal(card.games[0].number, "01")
   assert.equal(card.games[0].playerName, "旅行者")
+  assert.equal(card.games[0].monthlyText, "8月签到 5 次")
   assert.equal(card.games[1].number, "02")
   assert.equal(card.games[1].stateText, "已暂停")
 })
