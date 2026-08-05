@@ -4,6 +4,10 @@ import {
   MiyousheLiveCodeSource,
   resolveCodeGame,
 } from "../lib/codes/miyoushe-live.js"
+import {
+  extractTrustedKuroCodes,
+  KuroOfficialCodeSource,
+} from "../lib/codes/kuro-official.js"
 import { CodeSubscriptionService } from "../lib/codes/subscription-service.js"
 import {
   buildCodeCardData,
@@ -95,7 +99,121 @@ test("MiyousheLiveCodeSource discovers and normalizes official CN codes", async 
   assert.deepEqual(codes[0].rewards, ["原石 ×100 精锻用魔矿 ×10"])
   assert.equal(codes[0].expiresAt, "2026-08-03T04:00:00.000Z")
   assert.equal(resolveCodeGame("崩铁").key, "starRail")
+  assert.equal(resolveCodeGame("鸣潮").key, "wutheringWaves")
+  assert.equal(resolveCodeGame("战双").key, "punishingGrayRaven")
   assert.equal(calls.filter(call => call.url.includes("user_instant")).length, 1)
+})
+
+test("KuroOfficialCodeSource discovers consensus codes from official preview posts", async () => {
+  const requests = []
+  const publishTime = Date.now()
+  const source = new KuroOfficialCodeSource({
+    fetchImpl: async (url, options) => {
+      requests.push({ url: String(url), body: String(options.body) })
+      if (String(url).endsWith("/forum/companyEvent/findEventList")) {
+        return jsonResponse({
+          code: 200,
+          data: {
+            list: [{
+              postId: "preview-1",
+              postTitle: "《鸣潮》4.0版本内容前瞻",
+              publishTime,
+            }],
+          },
+        })
+      }
+      if (String(url).endsWith("/forum/getPostDetail")) {
+        return jsonResponse({
+          code: 200,
+          data: {
+            postDetail: {
+              postUserId: "official",
+              postTitle: "《鸣潮》4.0版本内容前瞻",
+              postH5Content: "<p>版本内容回顾</p>",
+            },
+            comment: [
+              {
+                userId: "user-1",
+                commentContent: [{
+                  content: "前瞻兑换码【FIRSTCODE】、【SECOND88】，有效期至2099年8月8日23:59",
+                }],
+              },
+              {
+                userId: "user-2",
+                commentContent: [
+                  { content: "兑换码" },
+                  { content: "FIRSTCODE" },
+                  { content: "SECOND88" },
+                ],
+              },
+              {
+                userId: "user-3",
+                commentContent: [{ content: "WINDOWSUPDATE" }],
+              },
+            ],
+          },
+        })
+      }
+      throw new Error(`unexpected request: ${url}`)
+    },
+  })
+
+  const codes = await source.list("wutheringWaves")
+  assert.deepEqual(codes.map(item => item.code), ["FIRSTCODE", "SECOND88"])
+  assert.equal(codes[0].gameName, "鸣潮")
+  assert.equal(codes[0].source, "kuro-official-community")
+  assert.equal(codes[0].expiresAt, "2099-08-08T15:59:00.000Z")
+  assert.equal(
+    requests.filter(item => item.url.endsWith("/forum/getPostDetail")).length,
+    2,
+  )
+  assert.match(requests.at(-1).body, /isOnlyPublisher=0/)
+})
+
+test("Kuro code extraction accepts publisher codes and rejects expired codes", () => {
+  const result = extractTrustedKuroCodes([{
+    data: {
+      postDetail: { postUserId: "official", postH5Content: "版本前瞻" },
+      comment: [
+        {
+          userId: "official",
+          isPublisher: 1,
+          commentContent: [{
+            content: "限时礼包兑换码有效期至2099年2月3日23:59，黑卡：PGR2099",
+          }],
+        },
+        {
+          userId: "official",
+          isPublisher: 1,
+          commentContent: [{
+            content: "兑换码【EXPIRED1】，有效期至2020年2月3日23:59",
+          }],
+        },
+      ],
+    },
+  }])
+  assert.deepEqual(result.map(item => item.code), ["PGR2099"])
+})
+
+test("Kuro code extraction accepts a dated code bundle without manual confirmation", () => {
+  const result = extractTrustedKuroCodes([{
+    data: {
+      postDetail: { postUserId: "official", postH5Content: "版本前瞻" },
+      comment: [{
+        userId: "guide-author",
+        commentContent: [
+          { content: "战双版本前瞻兑换码：" },
+          { content: "NEWALPHA0602" },
+          { content: "FOSANNIVERSARY" },
+          { content: "有效期至2099年6月2日23:59" },
+        ],
+      }],
+    },
+  }])
+  assert.deepEqual(
+    result.map(item => item.code),
+    ["NEWALPHA0602", "FOSANNIVERSARY"],
+  )
 })
 
 test("CodeSubscriptionService stores subscriptions and deduplicates delivery", async () => {
@@ -170,6 +288,21 @@ test("code notification data includes a copyable text fallback", () => {
   assert.equal(card.codes[0].code, "CN7TEST1")
   assert.match(text, /CN7TEST1/)
   assert.match(text, /不会自动兑换/)
+})
+
+test("Kuro code card displays its actual official source", () => {
+  const card = buildCodeCardData({
+    gameName: "鸣潮",
+    codes: [{
+      code: "FIRSTCODE",
+      title: "《鸣潮》4.0版本内容前瞻",
+      rewards: [],
+      expiresAt: "2099-08-08T15:59:00.000Z",
+      sourceLabel: "库洛游戏 / 库街区官方前瞻帖及评论",
+    }],
+  })
+  assert.equal(card.gameIcon, "reward/icons/game/wuthering-waves.jpg")
+  assert.equal(card.sourceText, "库洛游戏 / 库街区官方前瞻帖及评论")
 })
 
 test("code subscription card shows enabled and disabled games", () => {

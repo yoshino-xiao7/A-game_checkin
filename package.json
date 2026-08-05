@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "check": "node --check index.js && node --check apps/checkin.js && node --check apps/codes.js && node --check apps/scheduler.js && node --check lib/codes/miyoushe-live.js && node --check lib/codes/subscription-service.js",
+    "check": "node --check index.js && node --check apps/checkin.js && node --check apps/codes.js && node --check apps/scheduler.js && node --check lib/codes/games.js && node --check lib/codes/miyoushe-live.js && node --check lib/codes/kuro-official.js && node --check lib/codes/source-router.js && node --check lib/codes/subscription-service.js",
     "test": "node --test"
   },
   "engines": {
