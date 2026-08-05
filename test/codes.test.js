@@ -12,6 +12,10 @@ import {
   extractTrustedSklandCodes,
   SklandOfficialCodeSource,
 } from "../lib/codes/skland-official.js"
+import {
+  extractTrustedTaygedoCodes,
+  TaygedoOfficialCodeSource,
+} from "../lib/codes/taygedo-official.js"
 import { CodeSubscriptionService } from "../lib/codes/subscription-service.js"
 import {
   buildCodeCardData,
@@ -107,7 +111,78 @@ test("MiyousheLiveCodeSource discovers and normalizes official CN codes", async 
   assert.equal(resolveCodeGame("战双").key, "punishingGrayRaven")
   assert.equal(resolveCodeGame("方舟").key, "arknights")
   assert.equal(resolveCodeGame("终末地").key, "endfield")
+  assert.equal(resolveCodeGame("异环").key, "nevernessToEverness")
   assert.equal(calls.filter(call => call.url.includes("user_instant")).length, 1)
+})
+
+test("TaygedoOfficialCodeSource discovers cross-validated NTE preview codes", async () => {
+  const requests = []
+  const sendTime = Date.now()
+  const source = new TaygedoOfficialCodeSource({
+    fetchImpl: async (url, options = {}) => {
+      requests.push({ url: String(url), headers: options.headers })
+      return jsonResponse({
+        code: 0,
+        data: {
+          posts: [
+            {
+              postId: 101,
+              uid: 1001,
+              subject: "异环1.3前瞻兑换码",
+              content: "NTEPREVIEW88\n有效期至2099年8月8日23:59",
+              sendTime,
+            },
+            {
+              postId: 102,
+              uid: 1002,
+              subject: "1.3版本前瞻直播兑换码",
+              structuredContent: JSON.stringify([{ txt: "NTEPREVIEW88" }]),
+              sendTime,
+            },
+            {
+              postId: 103,
+              uid: 1003,
+              subject: "前瞻兑换码",
+              content: "抖音平台专属：YHDOUYIN0808",
+              sendTime,
+            },
+          ],
+          users: [],
+        },
+      })
+    },
+  })
+
+  const codes = await source.list("nevernessToEverness")
+  assert.deepEqual(codes.map(item => item.code), ["NTEPREVIEW88"])
+  assert.equal(codes[0].gameName, "异环")
+  assert.equal(codes[0].source, "taygedo-official-community")
+  assert.equal(codes[0].expiresAt, "2099-08-08T15:59:00.000Z")
+  assert.equal(requests.length, 2)
+  assert.ok(requests.every(item => item.url.includes("communityId=2")))
+  assert.ok(requests.every(item => /^[0-9]+,[A-Za-z0-9]{8},[a-f0-9]{32}$/.test(item.headers.ds)))
+})
+
+test("Taygedo code extraction rejects invitations, platform codes, and old posts", () => {
+  const now = Date.now()
+  const post = (postId, uid, content, age = 0) => ({
+    postId,
+    uid,
+    subject: "异环版本前瞻直播兑换码",
+    content,
+    sendTime: now - age,
+  })
+  const result = extractTrustedTaygedoCodes([
+    post(1, 1, "NTECODE888"),
+    post(2, 2, "NTECODE888"),
+    post(3, 3, "邀请码：PERSONAL88"),
+    post(4, 4, "邀请码：PERSONAL88"),
+    post(5, 5, "抖音平台专属 YHDOUYIN0808"),
+    post(6, 6, "抖音平台专属 YHDOUYIN0808"),
+    post(7, 7, "OLDCODE888", 20 * 86400000),
+    post(8, 8, "OLDCODE888", 20 * 86400000),
+  ], [], now)
+  assert.deepEqual(result.map(item => item.code), ["NTECODE888"])
 })
 
 test("SklandOfficialCodeSource discovers cross-validated preview codes", async () => {
