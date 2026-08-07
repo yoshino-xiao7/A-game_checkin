@@ -358,25 +358,68 @@ test("Kuro code extraction accepts publisher codes and rejects expired codes", (
   assert.deepEqual(result.map(item => item.code), ["PGR2099"])
 })
 
-test("Kuro code extraction accepts a dated code bundle without manual confirmation", () => {
+test("Kuro code extraction accepts a dated bundle confirmed by two users", () => {
   const result = extractTrustedKuroCodes([{
     data: {
       postDetail: { postUserId: "official", postH5Content: "版本前瞻" },
-      comment: [{
-        userId: "guide-author",
-        commentContent: [
-          { content: "战双版本前瞻兑换码：" },
-          { content: "NEWALPHA0602" },
-          { content: "FOSANNIVERSARY" },
-          { content: "有效期至2099年6月2日23:59" },
-        ],
-      }],
+      comment: [
+        {
+          userId: "guide-author",
+          commentContent: [
+            { content: "战双版本前瞻兑换码：" },
+            { content: "NEWALPHA0602" },
+            { content: "FOSANNIVERSARY" },
+            { content: "有效期至2099年6月2日23:59" },
+          ],
+        },
+        {
+          userId: "guide-reader",
+          commentContent: [
+            { content: "前瞻兑换码" },
+            { content: "NEWALPHA0602" },
+            { content: "FOSANNIVERSARY" },
+          ],
+        },
+      ],
     },
   }])
   assert.deepEqual(
     result.map(item => item.code),
     ["NEWALPHA0602", "FOSANNIVERSARY"],
   )
+})
+
+test("Kuro code extraction prefers the official list over unrelated comment codes", () => {
+  const result = extractTrustedKuroCodes([{
+    data: {
+      postDetail: { postUserId: "official", postH5Content: "3.6版本前瞻回顾" },
+      comment: [
+        {
+          userId: "official",
+          isPublisher: 1,
+          commentContent: [{
+            content:
+              "前瞻通讯兑换码【HEARTOFSWORD】、【ETERNALFLAME】、【THEANSWER】" +
+              "有效期至2026年8月9日23:59。",
+          }],
+        },
+        {
+          userId: "guide-author",
+          commentContent: [{
+            content:
+              "前瞻兑换码【HEARTOFSWORD】、【ETERNALFLAME】、【THEANSWER】，" +
+              "有效期至2026年8月9日23:59。" +
+              "《逃离鸭科夫》联动涂装兑换码：F5F4D3B2A2。",
+          }],
+        },
+      ],
+    },
+  }])
+  assert.deepEqual(
+    result.map(item => item.code),
+    ["HEARTOFSWORD", "ETERNALFLAME", "THEANSWER"],
+  )
+  assert.ok(result.every(item => item.expiresAt === "2026-08-09T15:59:00.000Z"))
 })
 
 test("CodeSubscriptionService stores subscriptions and deduplicates delivery", async () => {
